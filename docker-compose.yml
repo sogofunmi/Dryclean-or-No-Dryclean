@@ -1,0 +1,9 @@
+services:
+  scraper:
+    
+    build: 
+      context: ./data_ingestion/fashion_crawler/
+    ports:
+      - "6800:6800"
+    volumes:
+      - ~/.aws:/root/.aws

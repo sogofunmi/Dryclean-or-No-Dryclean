@@ -23,16 +23,33 @@ COOKIES_ENABLED = True
 ROBOTSTXT_OBEY = False
 
 # Concurrency and throttling settings
-CONCURRENT_REQUESTS = 2
+#CONCURRENT_REQUESTS = 2
 #CONCURRENT_REQUESTS_PER_DOMAIN = 1
 DOWNLOAD_DELAY = 3.0
 
 RANDOMIZE_DOWNLOAD_DELAY = 0.5
 
-#USER_AGENT = "fashion_scraper (+httpL//www.yourdomain.com)"
+DEPTH_PRIORITY = 1
+SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
+SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
+
+FEEDS = {
+    "s3://sogo-fashion-bucket/moda-operandi/data_%(time)s.json": {
+    "format": "json",
+    "encoding": "utf8",
+    "store_empty": False
+    }
+}
 
 ITEM_PIPELINE = {
     'fashion_scraper.pipelines.FashionScraperPipeline':300
+}
+
+
+TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+DOWNLOAD_HANDLERS = {
+    "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
 }
 
 AUTOTHROTTLE_ENABLED = True
@@ -58,9 +75,7 @@ LOG_LEVEL = "INFO"
 # Posted by Andres Mitre
 # Retrieved 2026-07-23, License - CC BY-SA 4.0
 
-HTTPERROR_ALLOWED_CODES  =[404]
-#USER_AGENT = 'quotesbot (+http://www.yourdomain.com)'
-#USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36"
+HTTPERROR_ALLOWED_CODES  =[404, 403]
 
 
 headers = {
@@ -71,37 +86,6 @@ headers = {
 }
 
 
-#TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
-
-#PLAYWRIGHT_BROWSER_PROVIDER_CLASS = "fashion_crawler.browser_provider.CamoufoxProvider"
-
-#import sys
-#import asyncio
-
-#if sys.platform == 'win32':
-    #asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-#ASYNCIO_EVENT_LOOP_POLICY = "tornado.platform.asyncio.AnyThreadEventLoopPolicy"
-
-
-
-#PLAYWRIGHT_BROWSER_PROVIDER_CLASS = "scrapy_playfox.providers.CamoufoxProvider"
-
-# 2. Register the default playwright download handlers
-#DOWNLOAD_HANDLERS = {
-    #"http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-    #"https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-#}
-
-# 3. Use the required async loop
-#TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
-
-# 3. Supply the explicit modern validation headers required by advanced firewalls
-
-#PLAYWRIGHT_LAUNCH_OPTIONS = {
-    #"args": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
-    #"headless": True,
-#}
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
@@ -148,4 +132,4 @@ headers = {
 #HTTPCACHE_STORAGE = "scrapy.extensions.httpcache.FilesystemCacheStorage"
 
 # Set settings whose default value is deprecated to a future-proof value
-FEED_EXPORT_ENCODING = "utf-8"
+#FEED_EXPORT_ENCODING = "utf-8"

@@ -12,5 +12,4 @@ class FashionCrawlerItem(scrapy.Item):
     price = scrapy.Field()
     composition = scrapy.Field()
     details = scrapy.Field()
-    #size_fit = scrapy.Field()
     

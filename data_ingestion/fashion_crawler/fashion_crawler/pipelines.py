@@ -14,10 +14,10 @@ class FashionCrawlerPipeline:
 
         if adapter.get('title'):
             adapter['title'] = " ".join(adapter['title'].split())
-        if adapter.get('link') and not adapter['link'].startswith('http'):
-            adapter['link'] =  spider.stats_urls[0] + adapter['link']
-        if adapter.get('details'):
-            adapter['details'] = " ".join(adapter['details'].split())
+        #if adapter.get('link') and not adapter['link'].startswith('http'):
+            #adapter['link'] =  spider.starts_urls[0] + adapter['link']
+        #if adapter.get('details'):
+            #adapter['details'] = " ".join(adapter['details'].split())
 
             
         return item
