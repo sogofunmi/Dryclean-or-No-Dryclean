@@ -7,3 +7,10 @@ services:
       - "6800:6800"
     volumes:
       - ~/.aws:/root/.aws
+
+  etl_pipeline:
+    build:
+      context: ./etl
+    container_name: etl_pipeline
+    env_file:
+      - .env
