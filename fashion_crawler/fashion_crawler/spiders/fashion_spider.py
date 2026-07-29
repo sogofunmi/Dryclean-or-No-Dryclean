@@ -50,7 +50,7 @@ class FashionSpider(scrapy.Spider):
 
             
             products = scrolled.css("div.VariantCell")
-            #self.logger.info(f"--- Detected {len(products)} products after complete incremental scroll ---")
+
 
             for product in products:
                 item = FashionCrawlerItem() 
@@ -72,19 +72,12 @@ class FashionSpider(scrapy.Spider):
 
             
             next_button = page.locator("button.Paginator__button--next")
-            #has_next = (await next_button.count() > 0) and not (await next_button.is_disabled())
             has_next = not (await next_button.is_disabled())
             
             if has_next:
-                #await next_button.scroll_into_view_if_needed()
-                
-                #await asyncio.gather(
-                    #next_button.click(),
-                    #page.wait_for_load_state("networkidle", timeout=30000)
-                #)
+        
                 await next_button.click()
                 await page.wait_for_load_state("networkidle", timeout=30000)
-                #await asyncio.sleep(2)
 
                 
                 webpage = await page.content()
@@ -106,8 +99,13 @@ class FashionSpider(scrapy.Spider):
         item = response.meta["item"]
 
         price = response.css("div.ProductDetails span.PDPProductPrice__current-price::text").get()
-        details = response.css("div.ProductDetails div.Expandable__contents div ul li::text").getall()
-        composition = response.xpath('//li[contains(text(), "Composition")]/text()').getall()
+        details = response.css("div.ProductDetails div.Expandable__contents div ul li p::text").getall()
+        if not details:
+            details = response.css("div.ProductDetails div.Expandable__contents div ul li::text").getall()
+        composition = response.xpath('//li/p[contains(text(), "Composition")]/text()').getall()
+        if not composition:
+            composition = response.xpath('//li[contains(text(), "Composition")]/text()').getall()
+            
 
         if price:
             item["price"] = price.strip()

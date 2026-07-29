@@ -34,7 +34,7 @@ SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
 FEEDS = {
-    "s3://sogo-fashion-bucket/moda-operandi/data_%(time)s.json": {
+    "s3://sogo-fashion-bucket/moda-operandi/raw/data_%(time)s.json": {
     "format": "json",
     "encoding": "utf8",
     "store_empty": False

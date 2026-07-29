@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project showcases an end-to-end machine learning deployment pipeline. It features a Flask application containerized with Docker and continuously deployed to AWS via GitLab CI/CD.
+This repository showcases an end-to-end machine learning deployment pipeline. It features a Flask application containerized with Docker and continuously deployed to AWS via GitLab CI/CD.
 
 ## Project Components
 
@@ -11,3 +11,5 @@ This project showcases an end-to-end machine learning deployment pipeline. It fe
 3. **Training Pipeline**
 4. **Monitoring and Evaluation Pipeline**
 5. **Model Serving API**
+
+## How to Run Locally

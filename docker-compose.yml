@@ -2,15 +2,22 @@ services:
   scraper:
     
     build: 
-      context: ./data_ingestion/fashion_crawler/
+      context: ./fashion_crawler/
     ports:
       - "6800:6800"
     volumes:
-      - ~/.aws:/root/.aws
+      - ~/.aws:/root/.aws:ro
 
   etl_pipeline:
     build:
       context: ./etl
     container_name: etl_pipeline
+    volumes:
+      - ~/.aws:/root/.aws:ro
     env_file:
       - .env
+
+  model_training:
+    build:
+      context: ./model_training
+    command: python model_trainer.py
