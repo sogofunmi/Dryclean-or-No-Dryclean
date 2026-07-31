@@ -2,7 +2,9 @@ import scrapy
 from fashion_crawler.items import FashionCrawlerItem
 from urllib.parse import urljoin
 import asyncio
-
+import boto3
+import json
+import os
 
 class FashionSpider(scrapy.Spider):
     name = "fashion"
@@ -15,10 +17,21 @@ class FashionSpider(scrapy.Spider):
         "PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT": 30000,
     }
 
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.seen_links = set()
 
+        historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA")
+        
+        self.seen_links = set()
+        s3 = boto3.client("s3")
+        historical_links = s3.get_object(Bucket=historical_bucket, Key="historical_links.json")
+        if historical_links:
+            self.hist_links = historical_links["Body"]
+        self.seen_links = set(json.load(self.hist_links))
+
+        if self.seen_links is None:
+            self.seen_links = set()
     async def start(self):
         yield scrapy.Request(
             url="https://www.modaoperandi.com/women/products/clothing",
