@@ -9,3 +9,4 @@ build-job:
 deploy-job:
   stage: deploy
   environment: production
+  
