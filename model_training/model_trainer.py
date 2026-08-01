@@ -10,7 +10,7 @@ def train():
 def pca():
     pass
 
-def embedding():
+def embedding(data):
     pass
 
 def main():
@@ -18,3 +18,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
