@@ -7,4 +7,3 @@ build-job:
   stage: build
 
 deploy-job:
-  stage: deploy
