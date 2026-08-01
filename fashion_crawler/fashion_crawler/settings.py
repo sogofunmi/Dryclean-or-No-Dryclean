@@ -7,6 +7,8 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+import os
+
 BOT_NAME = "fashion_crawler"
 
 SPIDER_MODULES = ["fashion_crawler.spiders"]
@@ -33,8 +35,9 @@ DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
+raw_bucket = os.environ.get("AWS_RAW_BUCKET")
 FEEDS = {
-    "s3://sogo-fashion-bucket/moda-operandi/raw/data_%(time)s.json": {
+    f"s3://{raw_bucket}/moda-operandi/raw/data_%(time)s.json": {
     "format": "json",
     "encoding": "utf8",
     "store_empty": False

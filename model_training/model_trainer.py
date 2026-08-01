@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from sentence_transformers import SentenceTransformer
 
 
 historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA")
