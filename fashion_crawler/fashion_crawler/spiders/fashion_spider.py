@@ -106,7 +106,7 @@ class FashionSpider(scrapy.Spider):
                 await page.close()
 
         except Exception as e:
-            self.logger.error(f"Error encountered during dynamic parser looping: {str(e)}")
+            self.logger.error(f"Error encountered during parsing: {str(e)}")
             await page.close()
          
 

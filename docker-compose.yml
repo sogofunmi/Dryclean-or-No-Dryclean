@@ -1,6 +1,5 @@
 services:
   scraper:
-    
     build: 
       context: ./fashion_crawler/
     ports:
@@ -17,9 +16,11 @@ services:
     env_file:
       - .env
 
-  model_training:
+  training:
     build:
       context: ./model_training
     command: python model_trainer.py
     volumes:
       - ~/.aws:/root/.aws:ro
+    env_file:
+      - .env
