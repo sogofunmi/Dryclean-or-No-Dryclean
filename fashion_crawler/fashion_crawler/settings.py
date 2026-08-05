@@ -6,6 +6,7 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import os 
 
 BOT_NAME = "fashion_crawler"
 
@@ -34,7 +35,7 @@ SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
 FEEDS = {
-    "s3://sogo-fashion-bucket/moda-operandi/raw/data_%(time)s.json": {
+    "s3://sogo-fashion-bucket/%(time)s.json": {
     "format": "json",
     "encoding": "utf8",
     "store_empty": False

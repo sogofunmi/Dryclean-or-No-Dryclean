@@ -26,85 +26,58 @@ def data_split(bucket_name=historical_bucket):
     X_train_unscaled, X_test_unscaled, y_train, y_test = train_test_split(df.drop(["link", "y"], axis=1), 
                                                                               df["y"], test_size=0.3, random_state=40)
     dict_vect = DictVectorizer(sparse=False)
-    train_dicts = X_train_unscaled.drop(["title"], axis=1).to_dict(orient="records")
+    train_dicts = X_train_unscaled.drop(["title", "price"], axis=1).to_dict(orient="records")
     dict_vect.fit(train_dicts)                                                                  
 
     return X_train_unscaled, X_test_unscaled, y_train, y_test, dict_vect
 
-def processing(X_train_unscaled, X_test_unscaled=None, scaler=None, dv=None):
+def processing(X_train_unscaled, X_test_unscaled):
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
 
-    if X_test_unscaled is None:
-        dicts = X_train_unscaled.drop(["title"], axis=1).to_dict(orient="records")
-        X = dv.transform(dicts)
+    scaler = StandardScaler()
+    emb_train = embedding_model.encode(X_train_unscaled["title"].tolist())
+    emb_test = embedding_model.encode(X_test_unscaled["title"].tolist())
 
-        emb_train = embedding_model.encode(X_train_unscaled["title"].tolist())
-        scaled_price_train = scaler.transform(X_train_unscaled[["price"]])
+    scaled_price_train = scaler.fit_transform(X_train_unscaled[["price"]])
+    scaled_price_test = scaler.transform(X_test_unscaled[["price"]])
 
-        fabric_comp_train = X.drop(["price"], axis=1)
-        X_train, X_test = clr_features(fabric_comp_train)
-
-        X_train["price"] = scaled_price_train
-        emb_train_df = pd.DataFrame(emb_train)
-
-        X_train = pd.concat([X_train, emb_train_df], axis=1)
-
-        return X_train
-    
-    else:
-        scaler = StandardScaler()
-        emb_train = embedding_model.encode(X_train_unscaled["title"].tolist())
-        emb_test = embedding_model.encode(X_test_unscaled["title"].tolist())
-
-        scaled_price_train = scaler.fit_transform(X_train_unscaled[["price"]])
-        scaled_price_test = scaler.transform(X_test_unscaled[["price"]])
-
-        fabric_comp_train =  X_train_unscaled.drop(["price", "title"], axis=1)
-        fabric_comp_test = X_test_unscaled.drop(["price", "title"], axis=1)
+    fabric_comp_train =  X_train_unscaled.drop(["price", "title"], axis=1)
+    fabric_comp_test = X_test_unscaled.drop(["price", "title"], axis=1)
         
-        X_train, X_test = clr_features(fabric_comp_train, fabric_comp_test)
+    X_train, X_test = clr_features(fabric_comp_train, fabric_comp_test)
 
-        X_train["price"] = scaled_price_train
-        X_test["price"] = scaled_price_test
+    X_train["price"] = scaled_price_train
+    X_test["price"] = scaled_price_test
 
-        emb_train_df = pd.DataFrame(emb_train)
-        emb_test_df = pd.DataFrame(emb_test)
+    emb_train_df = pd.DataFrame(emb_train)
+    emb_test_df = pd.DataFrame(emb_test)
 
-        emb_train_df.index = range(len(emb_train_df))
-        X_train = pd.concat([X_train, emb_train_df], axis=1)
+    emb_train_df.index = range(len(emb_train_df))
+    X_train = pd.concat([X_train, emb_train_df], axis=1)
 
-        emb_test_df.index = range(len(emb_test_df))
-        X_test = pd.concat([X_test, emb_test_df], axis=1)
+    emb_test_df.index = range(len(emb_test_df))
+    X_test = pd.concat([X_test, emb_test_df], axis=1)
 
         
-        return X_train, X_test, scaler
+    return X_train, X_test, scaler
 
-def clr_features(train, test=None):
+def clr_features(train, test):
+    train = (train / 100) + 0.005
+    test = (test / 100) + 0.005
 
-    if test is None:
-        train = (train / 100) + 0.005
-        components_train = clr(train)
+    components_train = clr(train)
+    components_test = clr(test)
 
-        cols = train.columns.tolist()
-        components_train_df = pd.DataFrame(list(components_train), columns=cols)
+    cols = train.columns.tolist()
+    components_train_df = pd.DataFrame(list(components_train), columns=cols)
+    components_test_df = pd.DataFrame(list(components_test), columns=cols)
 
-        return components_train_df
-
-    else:
-        train = (train / 100) + 0.005
-        test = (test / 100) + 0.005
-
-        components_train = clr(train)
-        components_test = clr(test)
-
-        cols = train.columns.tolist()
-        components_train_df = pd.DataFrame(list(components_train), columns=cols)
-        components_test_df = pd.DataFrame(list(components_test), columns=cols)
-
-        return components_train_df, components_test_df
+    return components_train_df, components_test_df
 
 def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
-
+    joblib.dump(scaler, "scaler.pkl")
+    joblib.dump(dv, "dict_vect.pkl")
+    
     mlflow.xgboost.autolog()
     def objective(trial):
         
@@ -133,8 +106,7 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
         current_f1 = 0.0
 
     with mlflow.start_run():
-        joblib.dump(scaler, "scaler.pkl")
-        joblib.dump(dv, "dict_vect.pkl")
+        
         study = optuna.create_study(direction="maximize")
         study.optimize(objective, n_trials=n_trials)
 
@@ -149,14 +121,8 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
         model_info = mlflow.xgboost.log_model(best_model, name="Best Model", registered_model_name="XGBoost Model")
         if study.best_value > current_f1:
             client.set_registered_model_alias(name="XGBoost Model", alias="production", version=model_info.registered_model_version)
-
-        model_artifacts = {
-            "scaler_file": "scaler.pkl",
-            "vectorizer_file": "dict_vect.pkl"
-        }
-
-        mlflow.pyfunc.log_model(python_model = Inference(),
-        artifacts=model_artifacts)
+        mlflow.log_artifact("scaler.pkl")
+        mlflow.log_artifact("dict_vect.pkl")
 
 def main():
     X_train_unscaled, X_test_unscaled, y_train, y_test, dict_vect = data_split()

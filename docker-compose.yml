@@ -17,7 +17,17 @@ services:
       - "5432:5432"
     restart: always
 
-
+  scraper:
+    build: 
+      context: ./fashion_crawler/
+    container_name: 
+      scraper
+    ports:
+      - "6800:6800"
+    volumes:
+      - ~/.aws:/root/.aws
+    env_file:
+      - .env
 
   etl_pipeline:
     build:

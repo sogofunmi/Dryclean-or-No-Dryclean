@@ -154,7 +154,7 @@ def composition_transform(data):
     return new_df
 
 def transform_data(data):
-
+    links = data["title"].tolist()
     data.dropna(inplace=True)
 
     data["price"] = price_transform(data)
@@ -162,8 +162,7 @@ def transform_data(data):
     data["y"] = care_labels(data)
 
     data = composition_transform(data)
-    links = data["link"].tolist()
-
+    
     return links, data
 
 def load_to_s3(links, df, bucket_name=historical_bucket):
