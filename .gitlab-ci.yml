@@ -3,8 +3,6 @@ stages:
   - deploy
 
 variables:
-  
-  DOCKER_BUILDKIT: 1
   DOCKER_TLS_CERTDIR: ""
 
 .docker_setup:
@@ -21,35 +19,21 @@ build-scraper:
   stage: build
   script:
     - set -e
-    - docker build --cache-from=type=registry,ref=$ECR_URI/fashion/scraper:cache --cache-to=type=registry,ref=$ECR_URI/fashion/scraper:cache,mode=max -t $ECR_URI/fashion/scraper:latest -f ./fashion_crawler/Dockerfile ./fashion_crawler
+    - docker build -t $ECR_URI/fashion/scraper:latest -f ./fashion_crawler/Dockerfile ./fashion_crawler
     - docker push $ECR_URI/fashion/scraper:latest
 
 build-etl:
   extends: .docker_setup
   stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      changes:
-        - etl_pipeline/**/*
   script:
-    - >
-      docker build --cache-from=type=registry,ref=$ECR_URI/fashion/etl:cache
-      --cache-to=type=registry,ref=$ECR_URI/fashion/etl:cache,mode=max
-      -t $ECR_URI/fashion/etl:latest -f ./etl/Dockerfile ./etl
+    - docker build -t $ECR_URI/fashion/etl:latest -f ./etl/Dockerfile ./etl
     - docker push $ECR_URI/fashion/etl:latest
         
 build-trainer:
   extends: .docker_setup
   stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      changes:
-        - model_training/**/*
   script:
-    - >
-      docker build --cache-from=type=registry,ref=$ECR_URI/fashion/trainer:cache
-      --cache-to=type=registry,ref=$ECR_URI/fashion/trainer:cache,mode=max
-      -t $ECR_URI/fashion/trainer -f ./model_training/Dockerfile ./model_training
+    - docker build -t $ECR_URI/fashion/trainer -f ./model_training/Dockerfile ./model_training
     - docker push $ECR_URI/fashion/trainer:latest
 
 deploy_to_aws:
