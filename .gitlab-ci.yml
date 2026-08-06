@@ -63,7 +63,3 @@ deploy_to_aws:
     master
   script:
     - aws ecs update-service --cluster project --service mlflow-service --force-new-deployment
-
-
-
-deploy-job:
