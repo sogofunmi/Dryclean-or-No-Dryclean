@@ -13,3 +13,9 @@ This repository showcases an end-to-end machine learning deployment pipeline. It
 5. **Model Serving API**
 
 ## How to Run Locally
+
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - fashion_crawler/**/*
+
