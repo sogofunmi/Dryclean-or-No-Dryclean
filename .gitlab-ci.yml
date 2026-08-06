@@ -60,6 +60,6 @@ deploy_to_aws:
   stage: deploy
   image: amazon/aws-cli:latest
   only:
-    master
+    - master
   script:
     - aws ecs update-service --cluster project --service mlflow-service --force-new-deployment
