@@ -27,6 +27,7 @@ build-scraper:
       --cache-to=type=registry,ref=$ECR_URI/fashion/scraper:cache,mode=max
       -t $ECR_URI/fashion/scraper:latest -f ./fashion_crawler/Dockerfile ./fashion_crawler
     - docker push $ECR_URI/fashion/scraper:latest
+    - echo "Done"
 
 build-etl:
   extends: .docker_setup
