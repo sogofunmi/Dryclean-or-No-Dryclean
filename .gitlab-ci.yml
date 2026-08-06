@@ -13,28 +13,35 @@ variables:
     - export ECR_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
     - apk add --no-cache aws-cli
     - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $ECR_URI
+    - docker buildx create --name "Crawler Driver" --driver docker-container
+    - docker buildx inspect --bootstrap
 
 build-scraper:
   extends: .docker_setup
   stage: build
   script:
-    - set -e
-    - docker build -t $ECR_URI/fashion/scraper:latest -f ./fashion_crawler/Dockerfile ./fashion_crawler
-    - docker push $ECR_URI/fashion/scraper:latest
+    - > 
+      docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/fashion/scraper:cache
+      --cache-to=type=registry,ref=$ECR_URI/fashion/scraper:cache,mode=max 
+      -t $ECR_URI/fashion/scraper:latest -f ./fashion_crawler/Dockerfile ./fashion_crawler
 
 build-etl:
   extends: .docker_setup
   stage: build
   script:
-    - docker build -t $ECR_URI/fashion/etl:latest -f ./etl/Dockerfile ./etl
-    - docker push $ECR_URI/fashion/etl:latest
+    - > 
+      docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/fashion/etl:cache
+      --cache-to=type=registry,ref=$ECR_URI/fashion/etl:cache,mode=max 
+      -t $ECR_URI/fashion/etl:latest -f ./etl/Dockerfile ./etl
         
 build-trainer:
   extends: .docker_setup
   stage: build
   script:
-    - docker build -t $ECR_URI/fashion/trainer -f ./model_training/Dockerfile ./model_training
-    - docker push $ECR_URI/fashion/trainer:latest
+    - > 
+      docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/fashion/trainer:cache
+      --cache-to=type=registry,ref=$ECR_URI/fashion/trainer:cache,mode=max  
+      -t $ECR_URI/fashion/trainer:latest -f ./model_training/Dockerfile ./model_training
 
 deploy_to_aws:
   stage: deploy
