@@ -18,10 +18,6 @@ variables:
 build-scraper:
   extends: .docker_setup
   stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      changes:
-        - fashion_crawler/**/*
   script:
     - set -e
     - docker build --cache-from=type=registry,ref=$ECR_URI/fashion/scraper:cache --cache-to=type=registry,ref=$ECR_URI/fashion/scraper:cache,mode=max -t $ECR_URI/fashion/scraper:latest -f ./fashion_crawler/Dockerfile ./fashion_crawler
