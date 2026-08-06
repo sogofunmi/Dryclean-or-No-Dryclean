@@ -38,10 +38,10 @@ services:
     env_file:
       - .env
 
-  mlflow_tracking:
+  mlflow_server:
     build: 
       context: ./mlflow
-    container_name: mlflow_tracking
+    container_name: mlflow_server
     ports:
       - "5000:5000"
     volumes:
@@ -52,7 +52,7 @@ services:
       postgres:
         condition: service_healthy
     command: mlflow server --backend-store-uri postgresql://mlflow:mlflow@postgres:5432/mlflow --default-artifact-root s3://$AWS_TRANSFORMED_DATA/mlflow-artifacts --host 0.0.0.0 --port 5000 --allowed-hosts "*"
-
+  
   model_training:
     build:
       context: ./model_training
