@@ -16,25 +16,25 @@ wash_labels = set(["hand wash", "machine", "dry clean", "cold washing", "delicat
                "professional leather cleaning", "specialized care", "leather specialist", "specialist leather"])
 
 fiber_abb = {"ac": "acetate", "ca":"acetate", "cmd": "modal", "co": "cotton", "cta": "acetate",
-            "cu": "cupro", "cup": "cupro", "cv": "viscose", "ea": "elastane", "el": "elastane",
-            "hl": "linen", "li": "linen", "ma": "acrylic", "mo": "modal", "me": "metallic", "ny": "polyamide",
+            "cu": "cotton", "cup": "cotton", "cv": "viscose", "ea": "elastane", "el": "elastane",
+            "hl": "linen", "li": "linen", "ma": "acrylic", "mo": "modal", "ny": "polyamide",
             "pe": "polyester", "pes": "polyester", "pet": "polyester", "pm": "polyester", "pu": "polyester",
-            "ra": "ramie", "se": "silk", "ta": "acetate", "vi": "viscose", "wa": "wool", "wg": "wool", "wk": "wool",
+            "ra": "linen", "se": "silk", "ta": "acetate", "vi": "viscose", "wa": "wool", "wg": "wool", "wk": "wool",
             "wl": "wool", "wm": "wool", "wp": "wool", "ws": "wool", "wy": "wool", "wv": "wool", "wo": "wool",
             "wu": "wool", "wb": "wool","pl":"polyester"
             }
 
 fabric_subs = {"viscose":"viscose", "rayon":"viscose", "spandex":"elastane", "elastane":"elastane", "elastan":"elastane", "tane":"elastane", "alastane":"elastane", "polytrimethylane":"polyester",
-               "elasane":"elastane", "elaste":"elastane", "flax":"linen", "linen": "linen", "nylon":"polyamide", "amid":"polyamide", "polia":"polyamide", "terell":"polyester", "elasto":"polyester", 
-               "cotton": "cotton", "metal": "metallic", "acetate":"acetate", "modal":"modal", "cupro":"cotton", "modacrylic":"acrylic", "acry": "acrylic","silk":"silk",
+               "elasane":"elastane", "elastae":"elastane","elaste":"elastane", "flax":"linen", "linen": "linen", "nylon":"polyamide", "amid":"polyamide", "polia":"polyamide", "terell":"polyester", "elasto":"polyester", 
+               "cotton": "cotton", "acetate":"acetate", "modal":"modal", "cupro":"cotton", "modacrylic":"acrylic", "acry": "acrylic","silk":"silk",
                "poly":"polyester", "lurex":"polyester", "wool":"wool", "mohair":"wool", "cashmere":"wool", "merino":"wool", "alpaca":"wool", "seta":"silk", "sisal":"linen",
                "yak":"wool", "angora":"wool", "vicuna":"wool", "llama":"wool", "camel":"wool", "guanaco":"wool", "beaver":"wool", "crepe":"polyester", "satin":"polyester", 
-               "korean organza":"polyester", "organza":"silk", "ramie":"linen", "suede":"leather", "leather":"leather", "goose":"feathers", "down":"feathers", "feather":"feathers",
-               "bemberg":"cotton", "lycra": "elastane","lyra":"elastane", "acette":"acetate", "ctn":"cotton", "zamac":"metallic", "agnello":"wool", "denim":"cotton",
-               "shearling":"leather", "glass":"glass", "polyester":"polyester", "circulose":"cotton", "mesh":"polyester", "lyocell":"lyocell", "tencel":"lyocell", "microtencel":"lyocell",
-               "skin":"leather", "pwu":"polyester","lamb":"leather", "creme":"cotton", "elit":"acrylic", "jersey":"polyester","stretch":"polyester","laine":"wool","solvron":"wool",
-               "crochet":"cotton","cord":"cotton", "poplin":"cotton","pliss":"polyester","nappa":"leather", "aluminium":"metallic","hemp":"linen","spa":"spandex",
-               "brass":"metallic","wax":"cotton","steel":"metal","chaguar":"linen","taffeta":"polyester","econyl":"polyester","poli":"polyester","aluminum":"metallic", "elastan":"elastane", "arcy":"acrylic"
+               "korean organza":"polyester", "organza":"silk", "ramie":"linen", "suede":"leather", "leather":"leather",
+               "bemberg":"cotton", "lycra": "elastane","lyra":"elastane", "acette":"acetate", "ctn":"cotton", "agnello":"wool", "denim":"cotton",
+               "shearling":"leather", "polyester":"polyester", "circulose":"cotton", "mesh":"polyester", "lyocell":"lyocell", "tencel":"lyocell", "microtencel":"lyocell",
+               "skin":"leather", "pwu":"polyester","lamb":"leather", "hide":"leather", "creme":"cotton", "elit":"acrylic", "jersey":"polyester","stretch":"polyester","laine":"wool","solvron":"wool",
+               "crochet":"cotton","cord":"cotton", "poplin":"cotton","pliss":"polyester","nappa":"leather","hemp":"linen","spa":"elastane",
+               "wax":"cotton","chaguar":"linen","taffeta":"polyester","econyl":"polyester","poli":"polyester", "elastan":"elastane", "arcy":"acrylic"
                }
 
 
@@ -89,41 +89,39 @@ def fabric_extractor(string, fiber_abbreviations=fiber_abb, fabric_substitutions
     and Alpaca have been grouped under wool"""
     
     fabric_dict = {}
-    new_dict = {}
+    matched = False
     matches = re.findall(r"(\d+(?:\.\d+)?)%\s*([\w\s-]+?)(?=\d+%|$)", string)
 
     total_pct = 0
     for pct, fabric in matches:
         pct = float(pct)
         fabric = fabric.strip()
-        if "trochus niloticus" in fabric:
-            continue
-            
-        fabric_dict[fabric] = fabric_dict.get(fabric, 0) + pct
 
-    for fab_string, pct in fabric_dict.items():
-
-        if fab_string in fiber_abbreviations.keys():
-            raw_fiber = fiber_abbreviations[fab_string]
-
-        elif any(key in fab_string for key in fabric_substitutions):
+        fabric_parse = fabric
+        if any(key in fabric_parse for key in fabric_substitutions):
             for key, val in fabric_substitutions.items():
-                if key in fab_string:
-                    raw_fiber = val
+                if key in fabric_parse:
+                    fabric_parse = val
                     break
-                    
-        else:
-            raw_fiber = "other"
+                #matched = True
 
-        new_dict[raw_fiber] = new_dict.get(raw_fiber, 0) + pct
+        elif fabric_parse in fiber_abbreviations.keys():
+            fabric_parse = fiber_abbreviations[fabric_parse]
+            #matched = True
+        elif "trochus niloticus" in fabric_parse:
+            continue
+        else:
+            fabric_parse = "other"
+        
+        fabric_dict[fabric_parse] = fabric_dict.get(fabric_parse, 0) + pct
         total_pct += pct
 
 
     if total_pct > 100:
-        for fabric in new_dict:
-            new_dict[fabric] = round((new_dict[fabric] / total_pct) * 100)
+        for fabric in fabric_dict:
+            fabric_dict[fabric] = round((fabric_dict[fabric] / total_pct) * 100)
 
-    return new_dict
+    return fabric_dict
     
 
 def composition_transform(data):
@@ -131,6 +129,7 @@ def composition_transform(data):
     dict_vec = DictVectorizer(sparse=False)
 
     data["composition"] = data["composition"].astype("str")
+    data = data.map(lambda x: x.lower() if isinstance(x, str) else x)
     data = data[data["composition"].str.contains("%", na=False, regex=False)]
 
     data.index = range(1, len(data) + 1)
@@ -145,22 +144,25 @@ def composition_transform(data):
     fab_df.index = range(1, len(fab_df)+1)
 
     new_df = pd.concat([data.reset_index(drop=True), fab_df.reset_index(drop=True)], axis=1)
-    new_df.drop(columns=["details", "composition"],inplace=True)
+    new_df["total"] = fab_df.sum(axis=1)
+
+    less_100 = new_df.loc[new_df["total"]<100.0]
+
+    new_df.drop(less_100.index, inplace=True)
+    new_df.drop(columns=["details", "composition", "total"],inplace=True)
 
     return new_df
 
 def transform_data(data):
-
+    links = data["title"].tolist()
     data.dropna(inplace=True)
-    data = data.map(lambda x: x.lower() if isinstance(x, str) else x)
 
     data["price"] = price_transform(data)
     
     data["y"] = care_labels(data)
 
     data = composition_transform(data)
-    links = data["link"].tolist()
-
+    
     return links, data
 
 def load_to_s3(links, df, bucket_name=historical_bucket):

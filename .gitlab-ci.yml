@@ -1,0 +1,69 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  ECR_URI: "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+  DOCKER_BUILDKIT: 1
+
+.docker_setup:
+  image: docker:29.5.2
+  services:
+    - docker:29.5.2-dind
+  before_script:
+    - apk add --no-cache aws-cli
+    - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $ECR_URI
+
+build-scraper:
+  extends: .docker_setup
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - fashion_crawler/**/*
+  script:
+    - > 
+      docker build --cache-from=type=registry,ref=$ECR_URI/fashion/scraper:cache
+      --cache-to=type=registry,ref=$ECR_URI/fashion/scraper:cache,mode=max
+      -t $ECR_URI/fashion/scraper:latest -f ./fashion_crawler/Dockerfile ./fashion_crawler
+    - docker push $ECR_URI/fashion/scraper:latest
+
+build-etl:
+  extends: .docker_setup
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - etl_pipeline/**/*
+  script:
+    - >
+      docker build --cache-from=type=registry,ref=$ECR_URI/fashion/etl:cache
+      --cache-to=type=registry,ref=$ECR_URI/fashion/etl:cache,mode=max
+      -t $ECR_URI/fashion/etl:latest -f ./etl/Dockerfile ./etl
+    - docker push $ECR_URI/fashion/etl:latest
+        
+build-trainer:
+  extends: .docker_setup
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - model_training/**/*
+  script:
+    - >
+      docker build --cache-from=type=registry,ref=$ECR_URI/fashion/trainer:cache
+      --cache-to=type=registry,ref=$ECR_URI/fashion/trainer:cache,mode=max
+      -t $ECR_URI/fashion/trainer -f ./model_training/Dockerfile ./model_training
+    - docker push $ECR_URI/fashion/trainer:latest
+
+deploy_to_aws:
+  stage: deploy
+  image: amazon/aws-cli:latest
+  only:
+    master
+  script:
+    - aws ecs update-service --cluster project --service mlflow-service --force-new-deployment
+
+
+
+deploy-job:

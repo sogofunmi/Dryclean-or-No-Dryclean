@@ -1,11 +1,33 @@
 services:
+  postgres:
+    image:
+      postgres:15-alpine
+    container_name: mlflow_db
+    environment:
+      POSTGRES_USER: mlflow
+      POSTGRES_PASSWORD: mlflow
+      POSTGRES_DB: mlflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "mlflow"]
+      interval: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    restart: always
+
   scraper:
     build: 
       context: ./fashion_crawler/
+    container_name: 
+      scraper
     ports:
       - "6800:6800"
     volumes:
       - ~/.aws:/root/.aws
+    env_file:
+      - .env
 
   etl_pipeline:
     build:
@@ -16,11 +38,35 @@ services:
     env_file:
       - .env
 
-  training:
-    build:
-      context: ./model_training
-    command: python model_trainer.py
+  mlflow_server:
+    build: 
+      context: ./mlflow
+    container_name: mlflow_server
+    ports:
+      - "5000:5000"
     volumes:
-      - ~/.aws:/root/.aws:ro
+      - ~/.aws:/root/.aws
     env_file:
       - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: mlflow server --backend-store-uri postgresql://mlflow:mlflow@postgres:5432/mlflow --default-artifact-root s3://$AWS_TRANSFORMED_DATA/mlflow-artifacts --host 0.0.0.0 --port 5000 --allowed-hosts "*"
+  
+  model_training:
+    build:
+      context: ./model_training
+    container_name: model_training
+    volumes:
+      - ~/.aws:/root/.aws
+    env_file:
+      - .env
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow_tracking:5000
+    depends_on:
+      - mlflow_tracking
+      - etl_pipeline
+
+
+volumes:
+  postgres-db-volume:

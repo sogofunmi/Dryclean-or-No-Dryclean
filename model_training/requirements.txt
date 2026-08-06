@@ -2,3 +2,8 @@ pandas
 scikit-learn
 sentence_transformers
 scikit-bio
+xgboost
+optuna
+mlflow
+s3fs
+boto3

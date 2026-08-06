@@ -1,5 +1,5 @@
 FROM python:3.13.14-bookworm
-WORKDIR /data_ingestion/fashion_crawler
+WORKDIR /scraper
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
@@ -12,7 +12,7 @@ RUN playwright install chromium
 
 COPY . .
 
-ENV PYTHONPATH="/"
+#ENV PYTHONPATH="/"
 
 CMD ["scrapy", "crawl", "fashion"]
 EXPOSE 6800

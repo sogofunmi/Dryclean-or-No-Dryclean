@@ -7,6 +7,7 @@ import json
 import os
 
 
+
 class FashionSpider(scrapy.Spider):
     name = "fashion"
     
@@ -21,16 +22,15 @@ class FashionSpider(scrapy.Spider):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        bucket_name = os.environ.get("AWS_TRANSFORMED_DATA")
+        #bucket_name = os.environ.get("AWS_TRANSFORMED_BUCKET")
         
         s3 = boto3.client("s3")
         try:
-            historical_links = s3.get_object(Bucket=bucket_name, Key="historical_links.json")
+            historical_links = s3.get_object(Bucket="sogo-transformed-bucket", Key="historical_links.json")
             print("File found.")
             hist_links = historical_links["Body"]
             raw_links = json.load(hist_links)
-            self.seen_links = set(raw_links) if raw_links else set() 
+            self.seen_links = set(raw_links) 
         except:
             print("No file found.")
             self.seen_links = set()
@@ -106,7 +106,7 @@ class FashionSpider(scrapy.Spider):
                 await page.close()
 
         except Exception as e:
-            self.logger.error(f"Error encountered during parsing: {str(e)}")
+            self.logger.error(f"Error encountered. Could not scroll page: {str(e)}")
             await page.close()
          
 
@@ -115,12 +115,10 @@ class FashionSpider(scrapy.Spider):
         item = response.meta["item"]
 
         price = response.css("div.ProductDetails span.PDPProductPrice__current-price::text").get()
-        details = response.css("div.ProductDetails div.Expandable__contents div ul li p::text").getall()
-        if not details:
-            details = response.css("div.ProductDetails div.Expandable__contents div ul li::text").getall()
-        composition = response.xpath('//li/p[contains(text(), "Composition")]/text()').getall()
-        if not composition:
-            composition = response.xpath('//li[contains(text(), "Composition")]/text()').getall()
+        #details = response.css("div.ProductDetails div.Expandable__contents div ul li p::text").getall()
+        details = response.css("div.ProductDetails div.Expandable__contents div ul li::text").getall()
+        #composition = response.xpath('//li/p[contains(text(), "Composition")]/text()').getall()
+        composition = response.xpath('//li[contains(text(), "Composition")]/text()').getall()
             
 
         if price:
