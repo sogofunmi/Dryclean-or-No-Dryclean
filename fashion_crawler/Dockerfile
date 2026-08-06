@@ -12,7 +12,5 @@ RUN playwright install chromium
 
 COPY . .
 
-#ENV PYTHONPATH="/"
-
 CMD ["scrapy", "crawl", "fashion"]
 EXPOSE 6800
