@@ -3,7 +3,6 @@ stages:
   - deploy
 
 variables:
-  ECR_URI: "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
   DOCKER_BUILDKIT: 1
   DOCKER_TLS_CERTDIR: ""
 
@@ -12,6 +11,7 @@ variables:
   services:
     - docker:29.5.2-dind
   before_script:
+    ECR_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
     - apk add --no-cache aws-cli
     - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $ECR_URI
 
@@ -23,8 +23,8 @@ build-scraper:
       changes:
         - fashion_crawler/**/*
   script:
-    - > 
-      docker build --cache-from=type=registry,ref=$ECR_URI/fashion/scraper:cache --cache-to=type=registry,ref=$ECR_URI/fashion/scraper:cache,mode=max -t $ECR_URI/fashion/scraper:latest -f ./fashion_crawler/Dockerfile ./fashion_crawler
+    - set -e
+    - docker build --cache-from=type=registry,ref=$ECR_URI/fashion/scraper:cache --cache-to=type=registry,ref=$ECR_URI/fashion/scraper:cache,mode=max -t $ECR_URI/fashion/scraper:latest -f ./fashion_crawler/Dockerfile ./fashion_crawler
     - docker push $ECR_URI/fashion/scraper:latest
 
 build-etl:
