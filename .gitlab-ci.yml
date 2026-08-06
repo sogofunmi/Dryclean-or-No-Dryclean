@@ -43,6 +43,7 @@ build-trainer:
       --cache-to=type=registry,ref=$ECR_URI/fashion/trainer:cache,mode=max  
       -t $ECR_URI/fashion/trainer:latest -f ./model_training/Dockerfile ./model_training
 
+
 deploy_to_aws:
   stage: deploy
   image: 
