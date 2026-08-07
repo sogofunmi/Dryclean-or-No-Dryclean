@@ -13,7 +13,7 @@ from sklearn.feature_extraction import DictVectorizer
 
 
 historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA")
-
+model_path = os.environ.get("MODEL_PATH", "/trainer/models/all-MiniLM-L6-v2")
 mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI")
 mlflow.set_tracking_uri(mlflow_uri)
 mlflow.set_experiment("XGBoost Experiment")
@@ -32,8 +32,9 @@ def data_split(bucket_name=historical_bucket):
 
     return X_train_unscaled, X_test_unscaled, y_train, y_test, dict_vect
 
-def processing(X_train_unscaled, X_test_unscaled):
-    embedding_model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
+def processing(X_train_unscaled, X_test_unscaled, model_path=None):
+    
+    embedding_model = SentenceTransformer(model_path, device="cpu")
 
     scaler = StandardScaler()
     emb_train = embedding_model.encode(X_train_unscaled["title"].tolist())
