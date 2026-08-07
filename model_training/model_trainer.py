@@ -128,7 +128,7 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
 
 def main():
     X_train_unscaled, X_test_unscaled, y_train, y_test, dict_vect = data_split()
-    X_train, X_test, fitted_scaler = processing(X_train_unscaled, X_test_unscaled)
+    X_train, X_test, fitted_scaler = processing(X_train_unscaled, X_test_unscaled, model_path=model_path)
 
     XGB(X_train, y_train, X_test, y_test, fitted_scaler, dict_vect, n_trials=100)
 
