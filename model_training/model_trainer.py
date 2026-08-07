@@ -14,7 +14,8 @@ from sklearn.feature_extraction import DictVectorizer
 
 historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA")
 
-mlflow.set_tracking_uri("http://mlflow_tracking:5000")
+mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI")
+mlflow.set_tracking_uri(mlflow_uri)
 mlflow.set_experiment("XGBoost Experiment")
 
 client = mlflow.MlflowClient()

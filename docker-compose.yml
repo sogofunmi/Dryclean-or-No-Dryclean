@@ -67,6 +67,5 @@ services:
       - mlflow_tracking
       - etl_pipeline
 
-
 volumes:
   postgres-db-volume:

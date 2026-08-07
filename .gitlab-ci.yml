@@ -19,6 +19,10 @@ variables:
 build-scraper:
   extends: .docker_setup
   stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - fashion_crawler/**/*
   script:
     - > 
       docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/fashion/scraper:cache
@@ -28,6 +32,10 @@ build-scraper:
 build-etl:
   extends: .docker_setup
   stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - etl/**/*
   script:
     - > 
       docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/fashion/etl:cache

@@ -92,8 +92,8 @@ class FashionSpider(scrapy.Spider):
             
             if has_next:
         
-                await next_button.click()
-                await page.wait_for_load_state("networkidle", timeout=30000)
+                await next_button.click(timeout=60000)
+                await page.wait_for_load_state("networkidle", timeout=60000)
 
                 
                 webpage = await page.content()

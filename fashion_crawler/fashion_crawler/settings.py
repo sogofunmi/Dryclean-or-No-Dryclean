@@ -34,7 +34,7 @@ DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
-raw_bucket = os.environ.get("AWS_RAW_BUCKET")
+raw_bucket = os.environ.get("AWS_RAW_DATA")
 FEEDS = {
     "s3://sogo-fashion-bucket/%(time)s.json": {
     "format": "json",
