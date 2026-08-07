@@ -58,6 +58,10 @@ build-trainer:
 build-mlflow:
   extends: .docker_setup
   stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - mlflow/**/*
   script:
     - > 
       docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/mlflow:cache
@@ -72,4 +76,4 @@ deploy_to_aws:
   only:
     - master
   script:
-    - aws ecs update-service --cluster projects --service mlflow-service --force-new-deployment
+    - aws ecs update-service --cluster projects --service mlflow-service 

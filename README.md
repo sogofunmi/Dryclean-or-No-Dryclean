@@ -14,8 +14,5 @@ This repository showcases an end-to-end machine learning deployment pipeline. It
 
 ## How to Run Locally
 
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      changes:
-        - fashion_crawler/**/*
+
 

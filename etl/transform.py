@@ -154,7 +154,8 @@ def composition_transform(data):
     return new_df
 
 def transform_data(data):
-    links = data["title"].tolist()
+    links = data["link"].tolist()
+    #df_unique = data.drop_duplicates(subset="title")
     data.dropna(inplace=True)
 
     data["price"] = price_transform(data)
@@ -175,7 +176,7 @@ def load_to_s3(links, df, bucket_name=historical_bucket):
         read_links = json.load(hist_links)
         read_links.extend(links)
 
-        s3.put_object(Bucket=bucket_name, Body=json.dumps(links), Key="historical_links.json")
+        s3.put_object(Bucket=bucket_name, Body=json.dumps(read_links), Key="historical_links.json")
     except:
          
         print("No file found.")
