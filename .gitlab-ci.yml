@@ -45,11 +45,24 @@ build-etl:
 build-trainer:
   extends: .docker_setup
   stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - model_training/**/*
   script:
     - > 
       docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/fashion/trainer:cache
       --cache-to=type=registry,ref=$ECR_URI/fashion/trainer:cache,mode=max  
       -t $ECR_URI/fashion/trainer:latest -f ./model_training/Dockerfile ./model_training
+
+build-mlflow:
+  extends: .docker_setup
+  stage: build
+  script:
+    - > 
+      docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/mlflow:cache
+      --cache-to=type=registry,ref=$ECR_URI/mlflow:cache,mode=max  
+      -t $ECR_URI/mlflow:latest -f ./mlflow/Dockerfile ./mlflow
 
 deploy_to_aws:
   stage: deploy
