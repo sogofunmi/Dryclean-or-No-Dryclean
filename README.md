@@ -6,7 +6,7 @@ This repository showcases an end-to-end machine learning deployment pipeline. It
 
 ## 📁 Project Structure
 
-
+```text
 ├── backend
 │   ├── inference.py
 │   └── requirements.txt
@@ -41,6 +41,7 @@ This repository showcases an end-to-end machine learning deployment pipeline. It
 ├── docker-compose.yml
 ├── .gitignore
 └── requirements.txt
+```
 
 ## Project Components
 
