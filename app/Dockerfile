@@ -1,9 +1,0 @@
-FROM python:3.13.14-bookworm
-
-WORKDIR /app
-
-COPY requirements.txt ./
-
-
-
-

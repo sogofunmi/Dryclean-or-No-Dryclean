@@ -14,7 +14,7 @@ from sklearn.feature_extraction import DictVectorizer
 
 historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA")
 model_path = os.environ.get("MODEL_PATH", "/trainer/models/all-MiniLM-L6-v2")
-mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI")
+mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow_server:5000")
 mlflow.set_tracking_uri(mlflow_uri)
 mlflow.set_experiment("XGBoost Experiment")
 
