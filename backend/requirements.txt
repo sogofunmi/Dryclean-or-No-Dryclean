@@ -1,1 +1,4 @@
 mlflow
+fastapi[standard]
+uvicorn
+scikit-learn
