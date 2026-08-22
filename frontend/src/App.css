@@ -1,0 +1,219 @@
+:root {
+  --primary-color: #f9f4f3;
+  --secondary-color: #891653;
+  --accent-color: #48cae4;
+  --text-color: #070100;
+  --background-color: #e3b3a1;
+  --card-background: #e39ce0;
+  --success-color: #4caf50;
+  --error-color: #f60202;
+  --background-image: url("./assets/pink.jpeg");
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Lucida Handwriting', "Lucida Calligraphy";
+  color: var(--text-color);
+  background-color: var(--background-color);
+  background-image: var(--background-image);
+  background-size: contain;
+  font-weight: 900;
+}
+
+.app-container {
+  width: 100%;
+  
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+header h1 {
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  
+}
+
+h2 {
+  color: #fcfbfb;
+  margin-bottom: 0.5rem;
+  line-height: 0.5;
+  text-align: center;
+}
+
+h3 {
+  color: #070100;
+  text-shadow:
+    0 0 0 #000,
+    1px 0 0 #000,
+    0 1px 0 #000,
+    1px 1px 0 #000;
+}
+
+label {
+  text-shadow:
+    0 0 0 #000,
+    1px 0 0 #000,
+    0 1px 0 #000,
+    1px 1px 0 #000;
+}
+
+h4 {
+  color: var(--primary-color);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  line-height: 0.5;
+  text-align: center;
+}
+
+p {
+  color: var(--secondary-color);
+  margin-bottom: 0.5rem;
+  line-height: 1;
+  text-align: center;
+  text-shadow:
+    0 0 0 var(--secondary-color),
+    1px 0 0 var(--secondary-color),
+    0 1px 0 var(--secondary-color),
+    1px 1px 0 var(--secondary-color);
+}
+
+.form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: auto;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 24px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 50px;
+}
+
+.navigation-container {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;            
+  width: 100%;                    
+  padding: 20px;                  
+  box-sizing: border-box;
+}
+
+
+.descr-container {
+  background-color: var(--card-background);
+  padding: 1rem;
+  align-items: center;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  text-align: center;
+  height: auto;
+  min-height: 300px;
+  display: flex;
+  opacity: 0.8;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  width: 90%;
+  margin: auto;
+}
+
+
+.btn-button {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  background-color: var(--card-background);
+  color: rgb(101, 13, 92);
+  border: none;
+  border-radius: var(--border-radius);
+  font-family: 'Lucida Handwriting';
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.btn-button:hover {
+  background-color: #070100;
+}
+
+.btn-button:disabled {
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+}
+
+.fabric-grid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.fabric-card {
+  height: 250px;
+  padding: 20px;
+  opacity: 0.8;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: var(--card-background);
+  border: 1px solid #999999;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.fabric-card:hover {
+  background-color: #4a0328;
+  transform: scale(1.05);
+}
+
+input {
+  width: 100%;
+  align-items: start;
+  padding: 12px;
+  margin: 10px 0;
+  color: white;
+  box-sizing: border-box;
+  background-color: #070100;
+  vertical-align: top;
+  border-radius: 10px;
+  border: 2px solid #060004;
+}
+
+.flex-parent {
+  display: flex;
+  align-items: flex-start; /* Forces all children to align to the top edge */
+}
+
+input::placeholder {
+  color: var(--card-background);
+  font-style: italic;
+  font-size: 14px;
+}
+
+.predict {
+  color: var(--primary-color);
+  font-size: 20px
+}

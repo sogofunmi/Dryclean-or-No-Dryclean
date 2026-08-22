@@ -1,9 +1,27 @@
+include:
+  - component: gitlab.com/components/opentofu/job-templates@4.8.1
+    inputs:
+      version: 4.8.1
+      opentofu_version: 1.12.5
+      root_dir: ./terraform
+      state_name: production
+
 stages:
   - build
+  - validate
+  - test
   - deploy
+  - cleanup
 
 variables:
+  TF_ROOT: "./terraform"
+  TF_STATE_NAME: "default"
   DOCKER_TLS_CERTDIR: ""
+
+cache:
+  key: ${TF_ROOT}
+  paths:
+    - ${TF_ROOT}/.terraform
 
 .docker_setup:
   image: docker:29.5.2
@@ -12,9 +30,41 @@ variables:
   before_script:
     - export ECR_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
     - apk add --no-cache aws-cli
-    - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $ECR_URI
-    - docker buildx create --name "Crawler" --driver docker-container --use
+    - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin $ECR_URI
+    - docker buildx create --name "caching" --driver docker-container --use
     - docker buildx inspect --bootstrap
+
+terraform_plan:
+  stage: build
+  extends: [.opentofu:plan]
+
+  artifacts:
+    name: build
+    paths:
+      - ${TF_ROOT}/plan.cache
+    reports:
+      terraform: ${TF_ROOT}/plan.json
+
+terraform_validate:
+  stage: validate
+  extends: [.opentofu:validate]
+  rules:
+    - if: $CI_COMMIT_BRANCH != "master"
+  
+
+terraform_apply:
+  stage: deploy
+  extends: [.opentofu:apply]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+    
+terraform_destroy:
+  stage: cleanup
+  extends: [.opentofu:destroy]
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH != "master"
+
 
 build-scraper:
   extends: .docker_setup
@@ -71,26 +121,51 @@ build-mlflow:
 build-backend:
   extends: .docker_setup
   stage: build
+  
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       changes:
         - backend/**/*
   script:
     - > 
-      docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/backend:cache
-      --cache-to=type=registry,ref=$ECR_URI/backend:cache,mode=max  
-      -t $ECR_URI/backend:latest -f ./backend/Dockerfile ./backend
+      docker buildx build --push --platform linux/amd64 --provenance=false  --cache-from=type=registry,ref=$ECR_URI/fashion/backend:cache
+      --cache-to=type=registry,ref=$ECR_URI/fashion/backend:cache,mode=max  
+      -t $ECR_URI/fashion/backend:latest -f ./backend/Dockerfile ./backend
 
-deploy_to_aws:
+build-frontend:
+  stage: build
+  image:
+    node:latest
+  script:
+    - cd frontend
+    - npm install
+    - export VITE_API_URL=$API_URL
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist/
+
+test-frontend:
+  stage: test
+  image:
+    node:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH != "master" 
+  script:
+    - cd frontend
+    - npm install
+    - npm test --if-present -- --watchAll=false
+
+deploy-frontend:
   stage: deploy
+  dependencies:
+    - build-frontend
   image: 
     name: amazon/aws-cli:latest
-    entrypoint: [""]
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      changes:
-        - mlflow/**/*
+    entrypoint: ["/usr/bin/env"]
+  script:
+    - echo "Deploying to S3 bucket"
+    - cd frontend
+    - aws s3 sync dist/ s3://$FRONTEND_BUCKET/
   only:
     - master
-  script:
-    - aws ecs update-service --cluster projects --service mlflow-service 

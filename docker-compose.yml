@@ -3,10 +3,8 @@ services:
     image:
       postgres:15-alpine
     container_name: mlflow_db
-    environment:
-      POSTGRES_USER: mlflow
-      POSTGRES_PASSWORD: mlflow
-      POSTGRES_DB: mlflow
+    env_file:
+      - .env
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
@@ -16,6 +14,8 @@ services:
     ports:
       - "5432:5432"
     restart: always
+    networks:
+      - app_network
 
   scraper:
     build: 
@@ -28,6 +28,8 @@ services:
       - ~/.aws:/root/.aws
     env_file:
       - .env
+    networks:
+      - app_network
 
   etl_pipeline:
     build:
@@ -37,6 +39,8 @@ services:
       - ~/.aws:/root/.aws
     env_file:
       - .env
+    networks:
+      - app_network
 
   mlflow_server:
     build: 
@@ -51,7 +55,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: mlflow server --backend-store-uri postgresql://mlflow:mlflow@postgres:5432/mlflow --default-artifact-root s3://$AWS_TRANSFORMED_DATA/mlflow-artifacts --host 0.0.0.0 --port 5000 --allowed-hosts "*"
+    command: >
+      mlflow server 
+      --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB} 
+      --artifacts-destination ${MLFLOW_ARTIFACT_ROOT} --serve-artifacts
+      --host 0.0.0.0 --port 5000 --allowed-hosts "*"
+    networks:
+      - app_network
   
   model_training:
     build:
@@ -61,11 +71,52 @@ services:
       - ~/.aws:/root/.aws
     env_file:
       - .env
-    environment:
-      - MLFLOW_TRACKING_URI=http://mlflow_tracking:5000
     depends_on:
-      - mlflow_tracking
-      - etl_pipeline
+      - mlflow_server
+    networks:
+      - app_network
+    
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ~/.aws:/root/.aws
+    depends_on:
+      - mlflow_server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - app_network
+
+  #React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=development
+    networks:
+      - app_network
 
 volumes:
   postgres-db-volume:
+
+networks:
+  app_network:
+    driver: bridge

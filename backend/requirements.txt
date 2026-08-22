@@ -1,4 +1,9 @@
 mlflow
 fastapi[standard]
 uvicorn
-scikit-learn
+xgboost
+pydantic
+pandas
+scikit-bio
+mangum
+sentence_transformers

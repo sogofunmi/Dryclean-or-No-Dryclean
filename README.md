@@ -4,6 +4,24 @@
 
 This repository showcases an end-to-end machine learning deployment pipeline. It features an automated data ingestion, ETL, and model training pipeline containerized with Docker and continuously deployed to AWS.
 
+## 🛠️ Tech Stack
+
+|Category | Technology | Purpose |
+| --- | --- | --- |
+| Application | React, FastAPI | Full stack ML prediction web application |
+| CI/CD | GitLab CI | Deployment |
+| Compute | Fargate | Application hosting, auto scraping and processing, continuous training |
+| Containerization | Docker, Docker Compose | Container runtime and orchestration |
+| Container Registry | Amazon ECR | Private docker image storage |
+| Experiment Tracking | MLflow | Tracks all experiments and logs production model and artifacts |
+| Hyperparameter Tuning | Optuna | Tunes hyperparams to maximize F1 score |
+| Infrastructure | Terraform | Infrastructure as Code |
+| Model | XGBoost | Prediction model |
+| Reverse Proxy | Nginx | Traffic Routing |
+| Data Storage | AWS S3, Postgres | Stores scraped data, transformed data, and mlflow artifacts |
+| SSL | AWS ACM | HTTPS Certificate |
+
+
 ## 📁 Project Structure
 
 ```text
@@ -14,10 +32,10 @@ This repository showcases an end-to-end machine learning deployment pipeline. It
 │   ├── Dockerfile
 │   ├── __init__.py
 │   ├── requirements.txt
-│   └── transform.py
+│   └── transform.py                       
 ├── fashion_crawler
 │   ├── Dockerfile
-│   ├── fashion_crawler
+│   ├── fashion_crawler                     
 │   │   ├── __init__.py
 │   │   ├── items.py
 │   │   ├── middlewares.py
