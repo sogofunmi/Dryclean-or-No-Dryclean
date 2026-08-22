@@ -11,7 +11,7 @@ raw_bucket = os.environ.get("AWS_RAW_DATA")
 historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA")
 
 wash_labels = set(["hand wash", "machine", "dry clean", "cold washing", "delicate cycle", "gentle cycle", 
-               "wash cold", "wash hot", "wash warm", "washable", "specialist clean", "specialist care", "wash at", "spot clean", 
+               "wash cold", "wash hot", "gentle wash", "wash warm", "washable", "specialist clean", "specialist care", "wash at", "spot clean", 
                "professional clean", "delicate wash", "cold wash", "professional textile care", 
                "professional leather cleaning", "specialized care", "leather specialist", "specialist leather"])
 
@@ -70,7 +70,10 @@ def care_labels(data, wash_labels=wash_labels):
 
     data.dropna(inplace=True)
 
-    condition = data["y"].str.contains("machine wash|cycle|washable at|cold washing|wash at|cold wash", case=False)
+    condition = data["y"].str.contains(
+        "machine|cycle|washable at|cold washing|delicate cycle|"
+        "wash at|cold wash|gentle wash|gentle cycle|washable|delicate wash|"
+        , case=False)
 
     data["y"] = np.where(condition, "1", "0")
 

@@ -77,10 +77,8 @@ def clr_features(train, test):
     return components_train_df, components_test_df
 
 def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
-    joblib.dump(scaler, "scaler.pkl")
-    joblib.dump(dv, "dict_vect.pkl")
     
-    mlflow.xgboost.autolog()
+    mlflow.xgboost.autolog(log_models=False)
     def objective(trial):
         
         params = {
@@ -120,11 +118,14 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
         best_model = xgb.XGBClassifier(**best_params, eval_metric="aucpr")
         best_model.fit(X_train, y_train)
 
-        model_info = mlflow.xgboost.log_model(best_model, name="Best Model", registered_model_name="XGBoost Model")
+        joblib.dump(scaler, "scaler.pkl")
+        joblib.dump(dv, "dict_vect.pkl")
+        
+        model_info = mlflow.xgboost.log_model(best_model, artifact_path="Best_Model", registered_model_name="XGBoost Model")
         if study.best_value > current_f1:
             client.set_registered_model_alias(name="XGBoost Model", alias="production", version=model_info.registered_model_version)
-        mlflow.log_artifact("scaler.pkl")
-        mlflow.log_artifact("dict_vect.pkl")
+        mlflow.log_artifact("scaler.pkl", artifact_path="Best_Model")
+        mlflow.log_artifact("dict_vect.pkl", artifact_path="Best_Model")
 
 def main():
     X_train_unscaled, X_test_unscaled, y_train, y_test, dict_vect = data_split()

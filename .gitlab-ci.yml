@@ -68,11 +68,28 @@ build-mlflow:
       --cache-to=type=registry,ref=$ECR_URI/mlflow:cache,mode=max  
       -t $ECR_URI/mlflow:latest -f ./mlflow/Dockerfile ./mlflow
 
+build-backend:
+  extends: .docker_setup
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - backend/**/*
+  script:
+    - > 
+      docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/backend:cache
+      --cache-to=type=registry,ref=$ECR_URI/backend:cache,mode=max  
+      -t $ECR_URI/backend:latest -f ./backend/Dockerfile ./backend
+
 deploy_to_aws:
   stage: deploy
   image: 
     name: amazon/aws-cli:latest
     entrypoint: [""]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - mlflow/**/*
   only:
     - master
   script:
