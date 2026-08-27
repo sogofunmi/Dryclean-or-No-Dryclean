@@ -25,7 +25,7 @@ os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 from sentence_transformers import SentenceTransformer
 
-embedding_model = SentenceTransformer("/var/task/models/all-MiniLM-L6-v2", device="cpu")
+embedding_model = SentenceTransformer("/app/models/all-MiniLM-L6-v2", device="cpu")
 
 def load_artifacts():
     global model, scaler, dict_vect, artifacts_loaded, embedding_model
