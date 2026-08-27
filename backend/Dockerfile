@@ -15,6 +15,10 @@ RUN pip install --no-cache-dir --upgrade pip wheel setuptools && \
 FROM public.ecr.aws/lambda/python:3.13
 WORKDIR ${LAMBDA_TASK_ROOT}
 
+ENV HF_HOME=/tmp/hf_home
+ENV TRANSFORMERS_CACHE=/tmp/hf_cache
+ENV XDG_CACHE_HOME=/tmp/xdg_cache
+
 COPY --from=builder /app/packages ${LAMBDA_TASK_ROOT}
 
 COPY . .
@@ -23,11 +27,7 @@ RUN python -c "from sentence_transformers import SentenceTransformer; \
 model = SentenceTransformer('all-MiniLM-L6-v2'); \
 model.save('${LAMBDA_TASK_ROOT}/models/all-MiniLM-L6-v2', safe_serialization=True)"
 
-ENV MODEL_PATH=${LAMBDA_TASK_ROOT}/models/all-MiniLM-L6-v2
-
-ENV HF_HOME=/tmp/hf_home
-ENV TRANSFORMERS_CACHE=/tmp/hf_cache
-ENV XDG_CACHE_HOME=/tmp/xdg_cache
+ENV MODEL_PATH=${LAMBDA_TASK_ROOT}/models/all-MiniLM-L6-v2/
 
 CMD ["main.handler"]
 #CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
