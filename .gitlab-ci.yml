@@ -112,8 +112,7 @@ build-backend:
         - backend/**/*
   script:
     - > 
-      docker buildx build --push --provenance=false --cache-from=type=registry,ref=$ECR_URI/fashion/backend:cache
-      --cache-to=type=registry,ref=$ECR_URI/fashion/backend:cache,mode=max 
+      docker buildx build --push --provenance=false --no-cache 
       -t $ECR_URI/fashion/backend:latest -f ./backend/Dockerfile ./backend
 
 build-frontend:

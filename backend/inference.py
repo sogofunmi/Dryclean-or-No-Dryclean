@@ -46,6 +46,7 @@ def load_artifacts():
 
     if embedding_model is None:
         embedding_model = SentenceTransformer("/var/task/models/all-MiniLM-L6-v2", device="cpu")
+        
     artifacts_loaded = True
 
 def process(response):
