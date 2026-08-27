@@ -13,10 +13,11 @@ ENV XDG_CACHE_HOME=/tmp/xdg_cache
 RUN pip install --no-cache-dir --upgrade pip wheel setuptools && \
     pip install --no-cache-dir -r requirements.txt 
 
-COPY . ${LAMBDA_TASK_ROOT}
-
 RUN python -c "from sentence_transformers import SentenceTransformer; \ 
     model = SentenceTransformer('all-MiniLM-L6-v2'); \
-    model.save('${LAMBDA_TASK_ROOT}/models/all-MiniLM-L6-v2/', safe_serialization=True)
+    model.save('/var/task/models/all-MiniLM-L6-v2/', safe_serialization=True)&& \
+    ls /var/task/models/all-MiniLM-L6-v2/
+
+COPY . ${LAMBDA_TASK_ROOT}
 
 CMD ["main.handler"]
