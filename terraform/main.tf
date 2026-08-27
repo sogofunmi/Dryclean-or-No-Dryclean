@@ -254,7 +254,7 @@ resource "aws_api_gateway_method" "lambda" {
     resource_id = aws_api_gateway_resource.resource.id
     authorization = "NONE"
     rest_api_id = aws_api_gateway_rest_api.rest_api.id
-    http_method = "ANY"
+    http_method = "POST"
 }
 
 resource "aws_api_gateway_method_response" "options" {
