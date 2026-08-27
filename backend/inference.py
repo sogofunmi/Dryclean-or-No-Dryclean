@@ -3,6 +3,7 @@ import pandas as pd
 from skbio.stats.composition import clr
 import mlflow
 import joblib
+from sentence_transformers import SentenceTransformer
 
 mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI")
 mlflow.set_tracking_uri(mlflow_uri)
@@ -19,9 +20,14 @@ dict_vect = None
 artifacts_loaded = False
 
 
-from sentence_transformers import SentenceTransformer
 
-embedding_model = SentenceTransformer("/app/models/all-MiniLM-L6-v2", device="cpu")
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(CURRENT_DIR, "models", "all-MiniLM-L6-v2")
+
+embedding_model = SentenceTransformer(MODEL_PATH, device="cpu")
+
+#embedding_model = SentenceTransformer("/app/models/all-MiniLM-L6-v2", device="cpu")
 
 def load_artifacts():
     global model, scaler, dict_vect, artifacts_loaded, embedding_model
