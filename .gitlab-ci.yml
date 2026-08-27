@@ -121,7 +121,6 @@ build-mlflow:
 build-backend:
   extends: .docker_setup
   stage: build
-  
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       changes:

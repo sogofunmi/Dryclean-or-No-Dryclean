@@ -19,6 +19,16 @@ router = APIRouter(prefix="/api")
 
 origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173")
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origins],
+    allow_credentials=False,
+    allow_methods=["POST", "GET", "OPTIONS"],
+    allow_headers=["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"],
+)
+
 
 model = None
 scaler = None
