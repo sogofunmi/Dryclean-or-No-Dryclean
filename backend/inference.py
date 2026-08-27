@@ -2,7 +2,6 @@ import os
 import pandas as pd
 from skbio.stats.composition import clr
 
-
 model = None
 scaler = None
 dict_vect = None
@@ -32,11 +31,9 @@ def load_artifacts():
     run_id = prod_version.run_id
 
     scaler_path = mlflow.artifacts.download_artifacts(
-        run_id=run_id, artifact_path="Best_Model/scaler.pkl", dst_path="/tmp"
-    )
+        run_id=run_id, artifact_path="scaler.pkl", dst_path="/tmp")
     dict_vect_path = mlflow.artifacts.download_artifacts(
-        run_id=run_id, artifact_path="Best_Model/dict_vect.pkl", dst_path="/tmp"
-    )
+        run_id=run_id, artifact_path="dict_vect.pkl", dst_path="/tmp")
 
     scaler = joblib.load(scaler_path)
     dict_vect = joblib.load(dict_vect_path)
