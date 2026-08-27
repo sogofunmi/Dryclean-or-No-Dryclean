@@ -51,7 +51,6 @@ terraform_validate:
   rules:
     - if: $CI_COMMIT_BRANCH != "master"
   
-
 terraform_apply:
   stage: deploy
   extends: [.opentofu:apply]
@@ -64,7 +63,6 @@ terraform_destroy:
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH != "master"
-
 
 build-scraper:
   extends: .docker_setup
@@ -105,19 +103,6 @@ build-trainer:
       --cache-to=type=registry,ref=$ECR_URI/fashion/trainer:cache,mode=max  
       -t $ECR_URI/fashion/trainer:latest -f ./model_training/Dockerfile ./model_training
 
-build-mlflow:
-  extends: .docker_setup
-  stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      changes:
-        - mlflow/**/*
-  script:
-    - > 
-      docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/mlflow:cache
-      --cache-to=type=registry,ref=$ECR_URI/mlflow:cache,mode=max  
-      -t $ECR_URI/mlflow:latest -f ./mlflow/Dockerfile ./mlflow
-
 build-backend:
   extends: .docker_setup
   stage: build
@@ -127,7 +112,8 @@ build-backend:
         - backend/**/*
   script:
     - > 
-      docker buildx build --push --provenance=false  --no-cache 
+      docker buildx build --push --provenance=false --cache-from=type=registry,ref=$ECR_URI/fashion/backend:cache
+      --cache-to=type=registry,ref=$ECR_URI/fashion/backend:cache,mode=max 
       -t $ECR_URI/fashion/backend:latest -f ./backend/Dockerfile ./backend
 
 build-frontend:

@@ -12,8 +12,6 @@ alias = "production"
 client = mlflow.MlflowClient()
 model_uri = f"models:/{model_name}@{alias}"
 
-model_path = os.environ.get("MODEL_PATH")
-
 
 model = None
 scaler = None
@@ -25,9 +23,12 @@ artifacts_loaded = False
 
 def load_artifacts():
     global model, scaler, dict_vect, artifacts_loaded, embedding_model
+
+    if artifacts_loaded:
+        return
     prod_version = client.get_model_version_by_alias(name=model_name, alias=alias)
     run_id = prod_version.run_id
-    
+
     if scaler is None:
         scaler_path = mlflow.artifacts.download_artifacts(
         run_id=run_id, artifact_path="scaler.pkl", dst_path="/tmp")
@@ -44,7 +45,9 @@ def load_artifacts():
         model = mlflow.xgboost.load_model(model_uri)
 
     if embedding_model is None:
-        embedding_model = SentenceTransformer(model_path, device="cpu")
+        embedding_model = SentenceTransformer("/var/task/models/all-MiniLM-L6-v2", device="cpu")
+
+    artifacts_loaded = True
 
 def process(response):
 
