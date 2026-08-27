@@ -19,6 +19,8 @@ def load_artifacts():
     if not mlflow_uri or "localhost" in mlflow_uri:
         raise RuntimeError("MLFLOW_TRACKING_URI is unset or pointing to localhost!")
 
+    print(os.listdir("/var/task/models/all-MiniLM-L6-v2"))
+
     mlflow.set_tracking_uri(mlflow_uri)
     model_name = "XGBoost Model"
     alias = "production"
@@ -37,6 +39,7 @@ def load_artifacts():
 
     scaler = joblib.load(scaler_path)
     dict_vect = joblib.load(dict_vect_path)
+
     model_path = os.environ.get("MODEL_PATH", "all-MiniLM-L6-v2")
     embedding_model = SentenceTransformer(model_path)
     artifacts_loaded = True
