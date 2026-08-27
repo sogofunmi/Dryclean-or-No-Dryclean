@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+sentence-transformers
 mlflow
 fastapi[standard]
 uvicorn
@@ -6,5 +8,4 @@ pydantic
 pandas
 scikit-bio
 mangum
-sentence-transformers
 joblib
