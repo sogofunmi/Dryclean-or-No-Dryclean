@@ -17,11 +17,11 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 
 COPY --from=builder /app/packages ${LAMBDA_TASK_ROOT}
 
+COPY . .
+
 RUN python -c "from sentence_transformers import SentenceTransformer; \ 
 model = SentenceTransformer('all-MiniLM-L6-v2'); \
 model.save('${LAMBDA_TASK_ROOT}/models/all-MiniLM-L6-v2')"
-
-COPY . .
 
 ENV MODEL_PATH=${LAMBDA_TASK_ROOT}/models/all-MiniLM-L6-v2
 
