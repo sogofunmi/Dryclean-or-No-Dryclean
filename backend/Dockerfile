@@ -15,8 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 RUN mkdir -p /app/models/all-MiniLM-L6-v2
-RUN HF_HOME=/var/cache/hf_build python -c " \
-    from sentence_transformers import SentenceTransformer; \
+RUN HF_HOME=/var/cache/hf_build python -c "from sentence_transformers import SentenceTransformer; \
     model = SentenceTransformer('all-MiniLM-L6-v2'); \
     model.save('/app/models/all-MiniLM-L6-v2', safe_serialization=True)"
 
