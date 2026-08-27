@@ -3,7 +3,6 @@ from mangum import Mangum
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import mlflow
-from inference import process
 import joblib 
 import os
 from contextlib import asynccontextmanager
@@ -75,6 +74,8 @@ def health_check():
 @app.post("/predict")
 def predict(data: FabricInput):
 
+    from inference import process
+    load_artifacts()
     if model is None or scaler is None:
         return {"error": "Model artifacts failed to load."}
 

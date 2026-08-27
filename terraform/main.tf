@@ -200,7 +200,7 @@ resource "aws_lambda_function" "fastapi_lambda" {
 
     environment {
         variables = {
-            ALLOWED_ORIGINS = "https://${var.domain_name},https://${var.cf_domain}"
+            ALLOWED_ORIGINS = "https://${var.domain_name}"
         
             MLFLOW_TRACKING_URI = var.mlflow_uri
         }
