@@ -3,7 +3,6 @@ import pandas as pd
 from skbio.stats.composition import clr
 import mlflow
 import joblib
-from sentence_transformers import SentenceTransformer
 
 mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI")
 mlflow.set_tracking_uri(mlflow_uri)
@@ -16,10 +15,17 @@ model_uri = f"models:/{model_name}@{alias}"
 model = None
 scaler = None
 dict_vect = None
-embedding_model = None
+#embedding_model = None
 artifacts_loaded = False
 
+os.environ["HF_HOME"] = "/tmp/hf_home"
+os.environ["TRANSFORMERS_CACHE"] = "/tmp/hf_cache"
+os.environ["XDG_CACHE_HOME"] = "/tmp/xdg_cache"
+os.environ["TRANSFORMERS_OFFLINE"] = "1" 
 
+from sentence_transformers import SentenceTransformer
+
+embedding_model = SentenceTransformer("/var/task/models/all-MiniLM-L6-v2", device="cpu")
 
 def load_artifacts():
     global model, scaler, dict_vect, artifacts_loaded, embedding_model
@@ -44,8 +50,8 @@ def load_artifacts():
     if model is None:
         model = mlflow.xgboost.load_model(model_uri)
 
-    if embedding_model is None:
-        embedding_model = SentenceTransformer("/var/task/models/all-MiniLM-L6-v2", device="cpu")
+    #if embedding_model is None:
+        #embedding_model = SentenceTransformer("/var/task/models/all-MiniLM-L6-v2/", device="cpu")
         
     artifacts_loaded = True
 
