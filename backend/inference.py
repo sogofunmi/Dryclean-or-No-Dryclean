@@ -11,8 +11,7 @@ model_name = "XGBoost Model"
 alias = "production"
 client = mlflow.MlflowClient()
 model_uri = f"models:/{model_name}@{alias}"
-prod_version = client.get_model_version_by_alias(name=model_name, alias=alias)
-run_id = prod_version.run_id
+
 model_path = os.environ.get("MODEL_PATH")
 
 
@@ -26,7 +25,9 @@ artifacts_loaded = False
 
 def load_artifacts():
     global model, scaler, dict_vect, artifacts_loaded, embedding_model
-
+    prod_version = client.get_model_version_by_alias(name=model_name, alias=alias)
+    run_id = prod_version.run_id
+    
     if scaler is None:
         scaler_path = mlflow.artifacts.download_artifacts(
         run_id=run_id, artifact_path="scaler.pkl", dst_path="/tmp")

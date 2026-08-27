@@ -2,10 +2,8 @@ from fastapi import FastAPI, APIRouter
 from mangum import Mangum
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-import mlflow
-import joblib 
 import os
-from contextlib import asynccontextmanager
+from inference import process
 
 app = FastAPI()
 
@@ -26,10 +24,6 @@ app.add_middleware(
 )
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    yield
-
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
@@ -37,12 +31,7 @@ def health_check():
 @app.post("/predict")
 def predict(data: FabricInput):
 
-    from inference import process
-
-    scaled_df = process(data.model_dump())
-    
-    prediction = model.predict_proba(scaled_df)
-    pos_proba = prediction[0][1]
+    pos_proba = process(data.model_dump())
     if pos_proba:
         if pos_proba >= 0.5:
             message = "Machine Wash!"
@@ -55,4 +44,4 @@ def predict(data: FabricInput):
         #content={"prediction": message},
         #headers={"Access-Control-Allow-Origin": "https://machine-wash-or-not.com"})
 
-handler = Mangum(app, lifespan="off")
+handler = Mangum(app)
