@@ -4,7 +4,7 @@
 
 This repository showcases an end-to-end machine learning deployment pipeline. It features an automated data ingestion, ETL, and model training pipeline containerized with Docker and continuously deployed to AWS.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 |Category | Technology | Purpose |
 | --- | --- | --- |
@@ -13,24 +13,25 @@ This repository showcases an end-to-end machine learning deployment pipeline. It
 | Compute | Fargate | Application hosting, auto scraping and processing, continuous training |
 | Containerization | Docker, Docker Compose | Container runtime and orchestration |
 | Container Registry | Amazon ECR | Private docker image storage |
+| Data Storage | AWS S3, Postgres | Stores scraped data, transformed data, and mlflow artifacts |
 | Experiment Tracking | MLflow | Tracks all experiments and logs production model and artifacts |
 | Hyperparameter Tuning | Optuna | Tunes hyperparams to maximize F1 score |
 | Infrastructure | Terraform | Infrastructure as Code |
 | Model | XGBoost | Prediction model |
 | Reverse Proxy | Nginx | Traffic Routing |
-| Data Storage | AWS S3, Postgres | Stores scraped data, transformed data, and mlflow artifacts |
 | SSL | AWS ACM | HTTPS Certificate |
 
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 ├── backend
+│   ├── Dockerfile
 │   ├── inference.py
+│   ├── main.py
 │   └── requirements.txt
 ├── etl
 │   ├── Dockerfile
-│   ├── __init__.py
 │   ├── requirements.txt
 │   └── transform.py                       
 ├── fashion_crawler
@@ -46,14 +47,21 @@ This repository showcases an end-to-end machine learning deployment pipeline. It
 │   │       └── fashion_spider.py
 │   ├── requirements.txt
 │   └── scrapy.cfg
+├── frontend
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── (React source)
 ├── mlflow
 │   └── Dockerfile
 ├── model_training
 │   ├── Dockerfile
-│   ├── __init__.py
 │   ├── model_trainer.py
 │   └── requirements.txt
 ├── notebooks
+├── terraform
+│   ├── backend.tf
+│   ├── main.tf
+│   ├── variables.tf
 ├── README.md
 ├── .gitlab-ci.yml
 ├── docker-compose.yml
@@ -68,7 +76,20 @@ This repository showcases an end-to-end machine learning deployment pipeline. It
 3. **Model Training and Evaluation:** Designed for iterative experimentation and training, focusing on an XGBoost model with Optuna for hyperparameter tuning and MLflow for experiment tracking, to identify the most effective prediction method.
 
 
+## Local Development
 
+```text
+git clone https://github.com/sogofunmi/Dryclean-or-No-Dryclean.git
+cd Dryclean-or-No-Dryclean
 
+# Copy environment template and fill in local values in .env
+cp .env.example .env
 
+#Start all services locally and view logs 
+docker compose up -d
+docker compose logs -f
+
+# Stop all services
+docker compose down
+```
 

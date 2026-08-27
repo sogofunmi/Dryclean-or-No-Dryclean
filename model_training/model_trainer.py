@@ -8,13 +8,14 @@ from sentence_transformers import SentenceTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from skbio.stats.composition import clr
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, precision_score, recall_score
 from sklearn.feature_extraction import DictVectorizer
 
 
 historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA")
-model_path = os.environ.get("MODEL_PATH", "/trainer/models/all-MiniLM-L6-v2")
+model_path = os.environ.get("MODEL_PATH", "all-MiniLM-L6-v2")
 mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow_server:5000")
+
 mlflow.set_tracking_uri(mlflow_uri)
 mlflow.set_experiment("XGBoost Experiment")
 
@@ -78,6 +79,9 @@ def clr_features(train, test):
 
 def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
     
+    joblib.dump(scaler, "scaler.pkl")
+    joblib.dump(dv, "dict_vect.pkl")
+    
     mlflow.xgboost.autolog(log_models=False)
     def objective(trial):
         
@@ -117,10 +121,14 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
 
         best_model = xgb.XGBClassifier(**best_params, eval_metric="aucpr")
         best_model.fit(X_train, y_train)
+        y_pred_best = best_model.predict(X_test)
 
-        joblib.dump(scaler, "scaler.pkl")
-        joblib.dump(dv, "dict_vect.pkl")
-        
+        precision = precision_score(y_test, y_pred_best)
+        recall = recall_score(y_test, y_pred_best)
+
+        mlflow.log_metric("Best Precision", precision)
+        mlflow.log_metric("Best Recall", recall)
+
         model_info = mlflow.xgboost.log_model(best_model, artifact_path="Best_Model", registered_model_name="XGBoost Model")
         if study.best_value > current_f1:
             client.set_registered_model_alias(name="XGBoost Model", alias="production", version=model_info.registered_model_version)

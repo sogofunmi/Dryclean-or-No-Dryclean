@@ -92,7 +92,6 @@ def fabric_extractor(string, fiber_abbreviations=fiber_abb, fabric_substitutions
     and Alpaca have been grouped under wool"""
     
     fabric_dict = {}
-    matched = False
     matches = re.findall(r"(\d+(?:\.\d+)?)%\s*([\w\s-]+?)(?=\d+%|$)", string)
 
     total_pct = 0
@@ -106,11 +105,10 @@ def fabric_extractor(string, fiber_abbreviations=fiber_abb, fabric_substitutions
                 if key in fabric_parse:
                     fabric_parse = val
                     break
-                #matched = True
 
         elif fabric_parse in fiber_abbreviations.keys():
             fabric_parse = fiber_abbreviations[fabric_parse]
-            #matched = True
+        
         elif "trochus niloticus" in fabric_parse:
             continue
         else:

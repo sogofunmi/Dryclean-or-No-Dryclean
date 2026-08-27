@@ -35,8 +35,10 @@ SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
 raw_bucket = os.environ.get("AWS_RAW_DATA")
+
+feed_uri = f"s3://{raw_bucket}/%(time)s.json"
 FEEDS = {
-    "s3://sogo-fashion-bucket/%(time)s.json": {
+    feed_uri: {
     "format": "json",
     "encoding": "utf8",
     "store_empty": False
@@ -133,5 +135,3 @@ headers = {
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = "scrapy.extensions.httpcache.FilesystemCacheStorage"
 
-# Set settings whose default value is deprecated to a future-proof value
-#FEED_EXPORT_ENCODING = "utf-8"
