@@ -200,6 +200,7 @@ resource "aws_lambda_function" "fastapi_lambda" {
     environment {
         variables = {
             ALLOWED_ORIGINS = "https://${var.domain_name},https://${var.cf_domain}"
+        
             MLFLOW_TRACKING_URI = var.mlflow_uri
         }
 
@@ -311,7 +312,7 @@ resource "aws_api_gateway_deployment" "rest_api" {
         redeployment = sha1(jsonencode([
             aws_api_gateway_rest_api.rest_api,
             aws_api_gateway_integration.options,
-            aws_api_getway_integration.lambda_integration]))
+            aws_api_gateway_integration.lambda_integration]))
     }
 
     lifecycle {
