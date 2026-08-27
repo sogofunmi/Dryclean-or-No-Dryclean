@@ -199,9 +199,10 @@ resource "aws_lambda_function" "fastapi_lambda" {
 
     environment {
         variables = {
-            ALLOWED_ORIGINS = "https://${var.domain_name}"
+            ALLOWED_ORIGINS = "https://${var.domain_name},https://${var.cf_domain}"
             MLFLOW_TRACKING_URI = var.mlflow_uri
         }
+
     }
 
     vpc_config {
@@ -304,8 +305,19 @@ resource "aws_api_gateway_integration_response" "options" {
 }
 
 resource "aws_api_gateway_deployment" "rest_api" {
-    rest_api_id = aws_api_gateway_rest_api.rest_api.id   
-}
+    rest_api_id = aws_api_gateway_rest_api.rest_api.id  
+
+    triggers = {
+        redeployment = sha1(jsonencode([
+            aws_api_gateway_rest_api.rest_api,
+            aws_api_gateway_integration.options,
+            aws_api_getway_integration.lambda_integration]))
+    }
+
+    lifecycle {
+        create_before_destroy = true
+    }
+} 
 
 resource "aws_api_gateway_stage" "rest_api" {
     stage_name = "production"
