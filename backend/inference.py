@@ -11,7 +11,7 @@ artifacts_loaded = False
 
 def load_artifacts():
     global model, scaler, dict_vect, artifacts_loaded, embedding_model
-    if _artifacts_loaded:
+    if artifacts_loaded:
         return
     import mlflow
     import joblib
