@@ -1,6 +1,7 @@
 FROM python:3.12-slim
 
 RUN pip install --upgrade pip && \
+    pip install cmake && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -12,13 +13,6 @@ RUN pip install awslambdaric
 ENV HF_HOME=/tmp/hf_home
 ENV TRANSFORMERS_CACHE=/tmp/hf_cache
 ENV XDG_CACHE_HOME=/tmp/xdg_cache
-
-RUN pip install --upgrade pip && \
-    pip install \
-    --platform manylinux2014_x86_64 \
-    --implementation cp \
-    --python-version 3.12 \
-    --only-binary=:all: 
 
 RUN pip install --no-cache-dir -r requirements.txt 
 
