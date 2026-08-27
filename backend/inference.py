@@ -25,6 +25,7 @@ def load_artifacts():
     model_name = "XGBoost Model"
     alias = "production"
 
+
     client = mlflow.MlflowClient()
     model_uri = f"models:/{model_name}@{alias}"
     model = mlflow.xgboost.load_model(model_uri)
