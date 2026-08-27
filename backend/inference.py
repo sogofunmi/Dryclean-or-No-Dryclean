@@ -41,7 +41,8 @@ def load_artifacts():
     dict_vect = joblib.load(dict_vect_path)
 
     model_path = os.environ.get("MODEL_PATH", "all-MiniLM-L6-v2")
-    embedding_model = SentenceTransformer(model_path)
+    if embedding_model is None:
+        embedding_model = SentenceTransformer(model_path, device="cpu")
     artifacts_loaded = True
 
 
