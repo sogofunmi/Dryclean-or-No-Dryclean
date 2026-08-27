@@ -1,6 +1,20 @@
 import os
 import pandas as pd
 from skbio.stats.composition import clr
+import mlflow
+import joblib
+from sentence_transformers import SentenceTransformer
+
+mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI")
+mlflow.set_tracking_uri(mlflow_uri)
+model_name = "XGBoost Model"
+alias = "production"
+client = mlflow.MlflowClient()
+model_uri = f"models:/{model_name}@{alias}"
+prod_version = client.get_model_version_by_alias(name=model_name, alias=alias)
+run_id = prod_version.run_id
+model_path = os.environ.get("MODEL_PATH")
+
 
 model = None
 scaler = None
@@ -8,44 +22,28 @@ dict_vect = None
 embedding_model = None
 artifacts_loaded = False
 
+
+
 def load_artifacts():
     global model, scaler, dict_vect, artifacts_loaded, embedding_model
-    if artifacts_loaded:
-        return
-    import mlflow
-    import joblib
-    from sentence_transformers import SentenceTransformer
-    mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI")
-    if not mlflow_uri or "localhost" in mlflow_uri:
-        raise RuntimeError("MLFLOW_TRACKING_URI is unset or pointing to localhost!")
 
-    print(os.listdir("/var/task/models/all-MiniLM-L6-v2"))
-
-    mlflow.set_tracking_uri(mlflow_uri)
-    model_name = "XGBoost Model"
-    alias = "production"
-
-
-    client = mlflow.MlflowClient()
-    model_uri = f"models:/{model_name}@{alias}"
-    model = mlflow.xgboost.load_model(model_uri)
-
-    prod_version = client.get_model_version_by_alias(name=model_name, alias=alias)
-    run_id = prod_version.run_id
-
-    scaler_path = mlflow.artifacts.download_artifacts(
+    if scaler is None:
+        scaler_path = mlflow.artifacts.download_artifacts(
         run_id=run_id, artifact_path="scaler.pkl", dst_path="/tmp")
-    dict_vect_path = mlflow.artifacts.download_artifacts(
+
+        scaler = joblib.load(scaler_path)
+
+    if dict_vect is None:
+        dict_vect_path = mlflow.artifacts.download_artifacts(
         run_id=run_id, artifact_path="dict_vect.pkl", dst_path="/tmp")
 
-    scaler = joblib.load(scaler_path)
-    dict_vect = joblib.load(dict_vect_path)
+        dict_vect = joblib.load(dict_vect_path)
 
-    model_path = os.environ.get("MODEL_PATH", "all-MiniLM-L6-v2")
+    if model is None:
+        model = mlflow.xgboost.load_model(model_uri)
+
     if embedding_model is None:
         embedding_model = SentenceTransformer(model_path, device="cpu")
-    artifacts_loaded = True
-
 
 def process(response):
 
@@ -74,4 +72,6 @@ def process(response):
     scaled_df["price"] = scaled_price
     scaled_df = pd.concat([scaled_df, emb_df], axis=1)
 
-    return scaled_df
+    prediction = model.predict_proba(scaled_df)
+
+    return float(prediction[0][1])
