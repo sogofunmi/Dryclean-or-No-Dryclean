@@ -19,7 +19,7 @@ RUN python -c "from sentence_transformers import SentenceTransformer; \
 
 COPY . ${LAMBDA_TASK_ROOT}
 
-RUN python -c ls /var/task/
-RUN python -c ls /var/task/models/all-MiniLM-L6-v2/
+RUN ls /var/task/
+RUN ls /var/task/models/all-MiniLM-L6-v2/
 
 CMD ["main.handler"]
