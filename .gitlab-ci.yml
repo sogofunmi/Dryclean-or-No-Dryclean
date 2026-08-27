@@ -49,21 +49,21 @@ terraform_validate:
   stage: validate
   extends: [.opentofu:validate]
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH != "master"
   
 
 terraform_apply:
   stage: deploy
   extends: [.opentofu:apply]
   rules:
-    - if: $CI_COMMIT_BRANCH != "master"
+    - if: $CI_COMMIT_BRANCH == "master"
     
 terraform_destroy:
   stage: cleanup
   extends: [.opentofu:destroy]
   when: manual
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH != "master"
 
 
 build-scraper:
