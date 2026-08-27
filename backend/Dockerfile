@@ -11,9 +11,11 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir --upgrade pip wheel setuptools && \
     pip install --no-cache-dir -r requirements.txt --target /app/packages
 
+ENV PYTHONPATH="/app/packages"
+
 RUN python -c "from sentence_transformers import SentenceTransformer; \ 
     model = SentenceTransformer('all-MiniLM-L6-v2'); \
-    model.save('app/models/all-MiniLM-L6-v2/', safe_serialization=True)"
+    model.save('/app/models/all-MiniLM-L6-v2/', safe_serialization=True)"
 
 FROM public.ecr.aws/lambda/python:3.13
 WORKDIR ${LAMBDA_TASK_ROOT}
