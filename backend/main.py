@@ -19,14 +19,6 @@ router = APIRouter(prefix="/api")
 
 origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[origins],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 
 model = None
 scaler = None
@@ -92,7 +84,11 @@ def predict(data: FabricInput):
             message = "Don't machine wash!"
     else:
         message = "Error making prediction"        
-    return {"prediction": message}
+    #return {"prediction": message}
+    return JSONResponse(
+        content={"prediction": message},
+        headers={"Access-Control-Allow-Origin": "https://machine-wash-or-not.com"}
+    )
 
 
 app.include_router(router)

@@ -195,7 +195,7 @@ resource "aws_lambda_function" "fastapi_lambda" {
     image_uri = data.aws_ecr_image.image.image_uri
     package_type = "Image"
     source_code_hash = trimprefix(data.aws_ecr_image.image.id, "sha256:")
-    memory_size = 1024
+    memory_size = 2048
     timeout = 40
 
     environment {
