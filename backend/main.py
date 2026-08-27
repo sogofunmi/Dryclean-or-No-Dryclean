@@ -15,11 +15,8 @@ class FabricInput(BaseModel):
     price: int
     composition: dict[str, int]
 
-router = APIRouter(prefix="/api")
 
 origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173")
-
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
@@ -71,11 +68,11 @@ def load_artifacts():
 async def lifespan(app: FastAPI):
     yield
 
-@router.get("/health")
+@app.get("/health")
 def health_check():
     return {"status": "healthy"}
 
-@router.post("/predict")
+@app.post("/predict")
 def predict(data: FabricInput):
 
     if model is None or scaler is None:
@@ -100,6 +97,4 @@ def predict(data: FabricInput):
         headers={"Access-Control-Allow-Origin": "https://machine-wash-or-not.com"}
     )
 
-app.include_router(router)
-
-handler = Mangum(app, lifespan="off", api_gateway_base_path="/api")
+handler = Mangum(app, lifespan="off")

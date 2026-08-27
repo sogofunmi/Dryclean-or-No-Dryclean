@@ -238,9 +238,10 @@ resource "aws_api_gateway_domain_name" "domain" {
 
 resource "aws_api_gateway_resource" "resource" {
     rest_api_id = aws_api_gateway_rest_api.rest_api.id
-    path_part = "api/predict"
+    path_part = "predict"
     parent_id = aws_api_gateway_rest_api.rest_api.root_resource_id
 }
+
 
 resource "aws_api_gateway_method" "options" {
     resource_id = aws_api_gateway_resource.resource.id
