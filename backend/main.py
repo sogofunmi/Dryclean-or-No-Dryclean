@@ -43,7 +43,6 @@ def predict(data: FabricInput):
     
     prediction = model.predict_proba(scaled_df)
     pos_proba = prediction[0][1]
-
     if pos_proba:
         if pos_proba >= 0.5:
             message = "Machine Wash!"
