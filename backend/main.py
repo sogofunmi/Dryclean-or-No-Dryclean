@@ -100,7 +100,6 @@ def predict(data: FabricInput):
         headers={"Access-Control-Allow-Origin": "https://machine-wash-or-not.com"}
     )
 
-
 app.include_router(router)
 
-handler = Mangum(app)
+handler = Mangum(app, lifespan="off", api_gateway_base_path="/api")
