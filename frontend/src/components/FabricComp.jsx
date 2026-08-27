@@ -75,7 +75,7 @@ function FabricComponents() {
 
         console.log(finalData);
         try {
-            const response = await axios.post(`${API_URL}/api`, finalData);
+            const response = await axios.post(`${API_URL}/api/predict`, finalData);
             setPrediction(response.data.prediction);
         } catch (error) {
             setPrediction("Error making prediction.");
