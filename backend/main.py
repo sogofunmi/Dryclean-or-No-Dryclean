@@ -41,4 +41,9 @@ def predict(data: FabricInput):
         message = "Error making prediction"        
     return {"prediction": message}
 
-handler = Mangum(app)
+asgi_handler = Mangum(app)
+
+def ping_handler(event, context):
+    if event.get("source") == "aws.events":
+        return {"statuscode": 200}
+    return asgi_handler(event, context)
