@@ -4,7 +4,7 @@
 
 ![Static Badge](https://img.shields.io/badge/Python-orange?style=flat&logo=python&logoColor=blue) ![Static Badge](https://img.shields.io/badge/AWS-purple?style=flat&logoColor=blue) ![Static Badge](https://img.shields.io/badge/GitLab%20CI-purple?style=flat&logo=gitlab&logoColor=blue) ![Static Badge](https://img.shields.io/badge/Docker-purple?style=flat&logo=docker&logoColor=blue) ![Static Badge](https://img.shields.io/badge/MLflow-orange?style=flat&logo=mlflow&logoColor=blue)  ![Static Badge](https://img.shields.io/badge/Terraform-orange%3Fstyle%3Dflat%26logo%3Dgrafana%26logoColor%3Dblue?style=flat&logo=terraform&logoColor=blue&color=orange) ![Static Badge](https://img.shields.io/badge/FastAPI-purple?style=flat&logo=fastapi&logoColor=blue) ![Static Badge](https://img.shields.io/badge/ReactJS-orange?style=flat&logo=react&logoColor=blue)
 
-This repository showcases a full stack ML web app. It features automated data ingestion, ETL, and model training pipelines containerized with Docker and deployed to AWS using GitLab and Terraform.
+This repository lies at the intersection of Data Engineering, Machine Learning, and MLOps. It features data ingestion pipelines, feature engineering, model training, model serving, infrastructure provisioning, and model deployment.
 
 ## Project Components
 
