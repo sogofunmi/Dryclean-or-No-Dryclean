@@ -1,12 +1,9 @@
 :root {
-  --primary-color: #f9f4f3;
+  --primary-color: #f9f5f4;
   --secondary-color: #891653;
-  --accent-color: #48cae4;
   --text-color: #070100;
   --background-color: #e3b3a1;
   --card-background: #e39ce0;
-  --success-color: #4caf50;
-  --error-color: #f60202;
   --background-image: url("./assets/pink.jpeg");
   --border-radius: 8px;
   --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -28,7 +25,7 @@ body {
 }
 
 .app-container {
-  width: 100%;
+  width: 90%;
   
   margin: 0 auto;
   padding: 2rem 1rem;
@@ -57,17 +54,17 @@ h3 {
   color: #070100;
   text-shadow:
     0 0 0 #000,
-    1px 0 0 #000,
-    0 1px 0 #000,
-    1px 1px 0 #000;
+    0.5px 0 0 #000,
+    0 0.5px 0 #000,
+    0.5px 0.5px 0 #000;
 }
 
 label {
   text-shadow:
     0 0 0 #000,
-    1px 0 0 #000,
-    0 1px 0 #000,
-    1px 1px 0 #000;
+    0.5px 0 0 #000,
+    0 0.5px 0 #000,
+    0.5px 0.5px 0 #000;
 }
 
 h4 {
@@ -85,9 +82,9 @@ p {
   text-align: center;
   text-shadow:
     0 0 0 var(--secondary-color),
-    1px 0 0 var(--secondary-color),
-    0 1px 0 var(--secondary-color),
-    1px 1px 0 var(--secondary-color);
+    0.5px 0 0 var(--secondary-color),
+    0 0.5px 0 var(--secondary-color),
+    0.5px 0.5px 0 var(--secondary-color);
 }
 
 .form-layout {
