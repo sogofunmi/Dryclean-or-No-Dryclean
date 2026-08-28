@@ -27,7 +27,6 @@ embedding_model = mlflow.sentence_transformers.load_model("models:/Transformer/l
 
 def process(response):
 
-    load_artifacts()
     if model is None or scaler is None:
         return {"error": "Model artifacts failed to load."}
 

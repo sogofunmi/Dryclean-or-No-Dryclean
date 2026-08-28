@@ -208,7 +208,7 @@ resource "aws_lambda_function" "fastapi_lambda" {
     image_config {
         command = ["main.ping_handler"]
     }
-    
+
     vpc_config {
         security_group_ids = [aws_security_group.lambda-sg.id]
         subnet_ids = local.subnet_ids
@@ -340,7 +340,7 @@ resource "aws_lambda_permission" "api_permission" {
 
 resource "aws_cloudwatch_event_rule" "ping" {
     name = "PingLambda"
-    schedule_expression = "rate(2 minutes)"
+    schedule_expression = "rate(1 minute)"
 }
 
 resource "aws_cloudwatch_event_target" "lambda" {
@@ -353,5 +353,5 @@ resource "aws_lambda_permission" "cloudwatch_invoke" {
     principal = "events.amazonaws.com"
     function_name = aws_lambda_function.fastapi_lambda.function_name
     action = "lambda:InvokeFunction"
-    source_arn = "${aws_cloudwatch_event_rule.ping.arn}"
+    source_arn = aws_cloudwatch_event_rule.ping.arn
 }
