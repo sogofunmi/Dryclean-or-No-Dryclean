@@ -201,10 +201,8 @@ resource "aws_lambda_function" "fastapi_lambda" {
     environment {
         variables = {
             ALLOWED_ORIGINS = "https://${var.domain_name}"
-        
             MLFLOW_TRACKING_URI = var.mlflow_uri
         }
-
     }
 
     vpc_config {
@@ -334,4 +332,25 @@ resource "aws_lambda_permission" "api_permission" {
     function_name = aws_lambda_function.fastapi_lambda.function_name
     principal = "apigateway.amazonaws.com"
     source_arn = "${aws_api_gateway_rest_api.rest_api.execution_arn}/*"
+}
+
+resource "aws_cloudwatch_event_rule" "ping" {
+    name = "Ping for lambda"
+    schedule_expression = rate("3 minutes")
+    event_pattern = jsonencode({
+
+    })
+}
+
+resource "aws_cloudwatch_event_target" "lambda" {
+    rule = aws_cloudwatch_event_rule.ping.name
+    arn = aws_lambda_function.fastapi_lambda.arn
+}
+
+resource "aws_lambda_permission" "cloudwatch_invoke" {
+    statement_id = "EvenLambdaInvoke"
+    principal = "events.amazonaws.com"
+    function_name = aws_lambda_function.fastapi_lambda.function_name
+    action = "lambda:InvokeFunction"
+    source_arn = "${aws_cloudwatch_event_rule.ping.arn}"
 }
