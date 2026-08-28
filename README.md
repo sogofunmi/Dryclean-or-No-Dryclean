@@ -4,12 +4,17 @@
 
 ![Static Badge](https://img.shields.io/badge/Python-orange?style=flat&logo=python&logoColor=blue) ![Static Badge](https://img.shields.io/badge/AWS-purple?style=flat&logoColor=blue) ![Static Badge](https://img.shields.io/badge/GitLab%20CI-purple?style=flat&logo=gitlab&logoColor=blue) ![Static Badge](https://img.shields.io/badge/Docker-purple?style=flat&logo=docker&logoColor=blue) ![Static Badge](https://img.shields.io/badge/MLflow-orange?style=flat&logo=mlflow&logoColor=blue)  ![Static Badge](https://img.shields.io/badge/Terraform-orange%3Fstyle%3Dflat%26logo%3Dgrafana%26logoColor%3Dblue?style=flat&logo=terraform&logoColor=blue&color=orange) ![Static Badge](https://img.shields.io/badge/FastAPI-purple?style=flat&logo=fastapi&logoColor=blue) ![Static Badge](https://img.shields.io/badge/ReactJS-orange?style=flat&logo=react&logoColor=blue)
 
+This repository showcases a full stack ML web app. It features automated data ingestion, ETL, and model training pipelines containerized with Docker and deployed to AWS using GitLab and Terraform.
 
+## Project Components
 
-## Overview
-
-This repository showcases an end-to-end machine learning deployment pipeline. It features an automated data ingestion, ETL, and model training pipeline containerized with Docker and continuously deployed to AWS.
-
+1. **Data Ingestion Pipeine:** Automated to handle large scale scraping from the Moda Operandi website. Scraping, ETL, and training runs on a monthly schedule using Amazon EventBridge rules and schedules.
+2. **ETL Pipeline:** Designed to handle data extraction and cleaning. This pipeline focuses on specifically extracting the fabric care components from fabic description strings. Fiber names were extracted from the composition column using regex to find fiber names based on custim dictionaries for clothing fiber abbreviations and fiber substitutions.
+3. **Model Training and Evaluation:** Designed for iterative experimentation and training, focusing on an XGBoost model with Optuna for hyperparameter tuning and MLflow for experiment tracking. Scaler used and 
+4. **Model Serving API:** FastAPI, Lambda, and API Gateway (REST API) work well together for the backend. Lambda + API Gateway are cost effective when running a low traffic site  because of their serverless offering. API Gateway provides rate limiting, throttling, and other protections for the backend
+5. **Frontend:** S3 + CloudFront were used for the frontend. S3 is great for hosting static websites and CloudFront provides some protecton with the Web ACL.
+6. **Infrastructure Provisioning:** Terraform was used for provisioning infrastructure specifically for the CloudFront distribution and Lambda + API Gateway infrastructure (backend). 
+6. **Full Model Deployment**: Model was deployed to AWS using GitLab CI. Continuous retraining and deployment are automated using AWS Services like lambda functions and EventBridge rules.
 
 ## Project Structure
 
@@ -58,27 +63,4 @@ This repository showcases an end-to-end machine learning deployment pipeline. It
 └── requirements.txt
 ```
 
-## Project Components
-
-1. **Data Ingestion:** Automated to handle large scale scraping from the Moda Operandi website. Scraping, ETL, and training runs on a monthly schedule using Amazon EventBridge and step functions. 
-2. **ETL Pipeline:** Designed to handle data extraction and cleaning.  
-3. **Model Training and Evaluation:** Designed for iterative experimentation and training, focusing on an XGBoost model with Optuna for hyperparameter tuning and MLflow for experiment tracking, to identify the most effective prediction method.
-
-
-## Local Development
-
-```text
-git clone https://github.com/sogofunmi/Dryclean-or-No-Dryclean.git
-cd Dryclean-or-No-Dryclean
-
-# Copy environment template and fill in local values in .env
-cp .env.example .env
-
-#Start all services locally and view logs 
-docker compose up -d
-docker compose logs -f
-
-# Stop all services
-docker compose down
-```
 
