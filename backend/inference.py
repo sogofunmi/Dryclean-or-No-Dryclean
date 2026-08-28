@@ -12,22 +12,11 @@ alias = "production"
 client = mlflow.MlflowClient()
 model_uri = f"models:/{model_name}@{alias}"
 
-
 model = None
 scaler = None
 dict_vect = None
-#embedding_model = None
+embedding_model = None
 artifacts_loaded = False
-
-
-
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(CURRENT_DIR, "models", "all-MiniLM-L6-v2")
-
-embedding_model = SentenceTransformer(MODEL_PATH, device="cpu")
-
-#embedding_model = SentenceTransformer("/app/models/all-MiniLM-L6-v2", device="cpu")
 
 def load_artifacts():
     global model, scaler, dict_vect, artifacts_loaded, embedding_model
@@ -52,8 +41,8 @@ def load_artifacts():
     if model is None:
         model = mlflow.xgboost.load_model(model_uri)
 
-    #if embedding_model is None:
-        #embedding_model = SentenceTransformer("/var/task/models/all-MiniLM-L6-v2/", device="cpu")
+    if embedding_model is None:
+        embedding_model = mlflow.sentence_transformers.load_model("models:/Transformer/latest")
         
     artifacts_loaded = True
 

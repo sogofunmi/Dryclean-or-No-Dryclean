@@ -40,8 +40,5 @@ def predict(data: FabricInput):
     else:
         message = "Error making prediction"        
     return {"prediction": message}
-    #return JSONResponse(
-        #content={"prediction": message},
-        #headers={"Access-Control-Allow-Origin": "https://machine-wash-or-not.com"})
 
 handler = Mangum(app)
