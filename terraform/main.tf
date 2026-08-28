@@ -205,6 +205,10 @@ resource "aws_lambda_function" "fastapi_lambda" {
         }
     }
 
+    image_config {
+        command = ["main.ping_handler"]
+    }
+    
     vpc_config {
         security_group_ids = [aws_security_group.lambda-sg.id]
         subnet_ids = local.subnet_ids
