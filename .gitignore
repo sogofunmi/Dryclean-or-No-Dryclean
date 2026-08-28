@@ -1,6 +1,7 @@
 .env
 test.ipynb
 __pycache__/
+notebooks/
 mlruns
 mlflow.db
 node_modules
