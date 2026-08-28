@@ -12,39 +12,18 @@ alias = "production"
 client = mlflow.MlflowClient()
 model_uri = f"models:/{model_name}@{alias}"
 
-model = None
-scaler = None
-dict_vect = None
-embedding_model = None
-artifacts_loaded = False
+prod_version = client.get_model_version_by_alias(name=model_name, alias=alias)
+run_id = prod_version.run_id
 
-def load_artifacts():
-    global model, scaler, dict_vect, artifacts_loaded, embedding_model
+scaler_path = mlflow.artifacts.download_artifacts(run_id=run_id, artifact_path="scaler.pkl", dst_path="/tmp")
+scaler = joblib.load(scaler_path)
 
-    if artifacts_loaded:
-        return
-    prod_version = client.get_model_version_by_alias(name=model_name, alias=alias)
-    run_id = prod_version.run_id
+dict_vect_path = mlflow.artifacts.download_artifacts(run_id=run_id, artifact_path="dict_vect.pkl", dst_path="/tmp")
+dict_vect = joblib.load(dict_vect_path)
 
-    if scaler is None:
-        scaler_path = mlflow.artifacts.download_artifacts(
-        run_id=run_id, artifact_path="scaler.pkl", dst_path="/tmp")
+model = mlflow.xgboost.load_model(f"models:/{model_name}@{alias}")
+embedding_model = mlflow.sentence_transformers.load_model("models:/Transformer/latest")
 
-        scaler = joblib.load(scaler_path)
-
-    if dict_vect is None:
-        dict_vect_path = mlflow.artifacts.download_artifacts(
-        run_id=run_id, artifact_path="dict_vect.pkl", dst_path="/tmp")
-
-        dict_vect = joblib.load(dict_vect_path)
-
-    if model is None:
-        model = mlflow.xgboost.load_model(model_uri)
-
-    if embedding_model is None:
-        embedding_model = mlflow.sentence_transformers.load_model("models:/Transformer/latest")
-        
-    artifacts_loaded = True
 
 def process(response):
 

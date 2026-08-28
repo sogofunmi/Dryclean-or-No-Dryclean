@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI
 from mangum import Mangum
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +12,6 @@ class FabricInput(BaseModel):
     price: int
     composition: dict[str, int]
 
-
 origins = os.environ.get("ALLOWED_ORIGINS")
 
 app.add_middleware(
@@ -22,7 +21,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.get("/health")
 def health_check():
