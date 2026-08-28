@@ -335,7 +335,7 @@ resource "aws_lambda_permission" "api_permission" {
 }
 
 resource "aws_cloudwatch_event_rule" "ping" {
-    name = "Ping for lambda"
+    name = "PingLambda"
     schedule_expression = "rate(3 minutes)"
 }
 
