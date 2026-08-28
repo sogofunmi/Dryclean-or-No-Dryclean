@@ -5,7 +5,7 @@ import joblib
 import pandas as pd
 import xgboost as xgb
 from sentence_transformers import SentenceTransformer
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.model_selection import train_test_split
 from skbio.stats.composition import clr
 from sklearn.metrics import f1_score, precision_score, recall_score
@@ -33,11 +33,11 @@ def data_split(bucket_name=historical_bucket):
 
     return X_train_unscaled, X_test_unscaled, y_train, y_test, dict_vect
 
-def processing(X_train_unscaled, X_test_unscaled, model_path=None):
+def processing(X_train_unscaled, X_test_unscaled, model_path):
     
     embedding_model = SentenceTransformer(model_path, device="cpu")
 
-    scaler = StandardScaler()
+    scaler = RobustScaler()
     emb_train = embedding_model.encode(X_train_unscaled["title"].tolist())
     emb_test = embedding_model.encode(X_test_unscaled["title"].tolist())
 
@@ -62,7 +62,7 @@ def processing(X_train_unscaled, X_test_unscaled, model_path=None):
     X_test = pd.concat([X_test, emb_test_df], axis=1)
 
         
-    return X_train, X_test, scaler
+    return X_train, X_test, scaler, embedding_model
 
 def clr_features(train, test):
     train = (train / 100) + 0.005
@@ -77,7 +77,7 @@ def clr_features(train, test):
 
     return components_train_df, components_test_df
 
-def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
+def XGB(X_train, y_train, X_test, y_test, scaler, dv, embedding_model, n_trials):
     
     joblib.dump(scaler, "scaler.pkl")
     joblib.dump(dv, "dict_vect.pkl")
@@ -86,7 +86,7 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
     def objective(trial):
         
         params = {
-                    "n_estimators": trial.suggest_int("n_estimators", 20, 700),
+                    "n_estimators": trial.suggest_int("n_estimators", 80, 700),
                     "max_depth": trial.suggest_int("max_depth", 3, 15),
                     "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.15, log=True)
                 }
@@ -129,17 +129,18 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, n_trials):
         mlflow.log_metric("Best Precision", precision)
         mlflow.log_metric("Best Recall", recall)
 
-        model_info = mlflow.xgboost.log_model(best_model, artifact_path="Best_Model", registered_model_name="XGBoost Model")
+        model_info = mlflow.xgboost.log_model(best_model, name="Best_Model", registered_model_name="XGBoost Model")
         if study.best_value > current_f1:
             client.set_registered_model_alias(name="XGBoost Model", alias="production", version=model_info.registered_model_version)
         mlflow.log_artifact("scaler.pkl", artifact_path="Best_Model")
         mlflow.log_artifact("dict_vect.pkl", artifact_path="Best_Model")
+        mlflow.sentence_transformers.log_model(embedding_model, name="Transformer", registered_model_name="Transformer")
 
 def main():
     X_train_unscaled, X_test_unscaled, y_train, y_test, dict_vect = data_split()
-    X_train, X_test, fitted_scaler = processing(X_train_unscaled, X_test_unscaled, model_path=model_path)
+    X_train, X_test, fitted_scaler, emb_model = processing(X_train_unscaled, X_test_unscaled, model_path=model_path)
 
-    XGB(X_train, y_train, X_test, y_test, fitted_scaler, dict_vect, n_trials=100)
+    XGB(X_train, y_train, X_test, y_test, fitted_scaler, dict_vect, emb_model, n_trials=100)
 
 
 if __name__ == "__main__":
