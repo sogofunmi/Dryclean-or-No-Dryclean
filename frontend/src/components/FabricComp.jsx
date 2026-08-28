@@ -24,7 +24,7 @@ function FabricComponents() {
         {id: "polyester", title: "Polyester", text: "Faux fur, Faux leather"},
         {id: "silk", title: "Silk", text: "Seta"},
         {id: "wool", title: "Wool", text: "Merino, Angora, Mohair, Alpaca, Cashmere, Yak, Agnello"},
-        {id: "other", title: "Other", text: "Metal, Glass"},
+        {id: "other", title: "Other", text: ""},
         {id: "viscose", title: "Viscose", text: "Rayon"}
 
     ];

@@ -16,17 +16,16 @@
 }
 
 body {
-  font-family: 'Lucida Handwriting', "Lucida Calligraphy";
+  font-family: 'Lucida Handwriting', monospace;
   color: var(--text-color);
   background-color: var(--background-color);
   background-image: var(--background-image);
   background-size: contain;
-  font-weight: 900;
+  font-size: 16px;
 }
 
 .app-container {
   width: 90%;
-  
   margin: 0 auto;
   padding: 2rem 1rem;
 }
@@ -40,7 +39,6 @@ header h1 {
   color: var(--primary-color);
   margin-bottom: 0.5rem;
   line-height: 1.5;
-  
 }
 
 h2 {
@@ -117,7 +115,6 @@ p {
   box-sizing: border-box;
 }
 
-
 .descr-container {
   background-color: var(--card-background);
   padding: 1rem;
@@ -136,15 +133,14 @@ p {
   margin: auto;
 }
 
-
 .btn-button {
   cursor: pointer;
   padding: 0.5rem 1rem;
+  font-family: 'Lucida Handwriting', monospace;
   background-color: var(--card-background);
   color: rgb(101, 13, 92);
   border: none;
   border-radius: var(--border-radius);
-  font-family: 'Lucida Handwriting';
   font-size: 1rem;
   transition: background-color 0.3s;
 }
@@ -197,11 +193,6 @@ input {
   vertical-align: top;
   border-radius: 10px;
   border: 2px solid #060004;
-}
-
-.flex-parent {
-  display: flex;
-  align-items: flex-start; /* Forces all children to align to the top edge */
 }
 
 input::placeholder {
