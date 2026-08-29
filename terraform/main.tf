@@ -20,7 +20,143 @@ provider "aws" {
 locals {
     domains = [var.domain_name, "www.${var.domain_name}"]
     subnet_ids = [var.subnet_1_id, var.subnet_2_id, var.subnet_3_id]
+    blocks = [aws_security_group.lambda-sg.id, var.security_group_id]
 }
+
+# EFS Section (EFS for MLflow DB rather than RDS)
+
+resource "aws_security_group" "efs-sg" {
+    name = "efs-sg"
+    vpc_id = var.vpc_id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "efs-ec2" {
+    ip_protocol = "tcp"
+    to_port = 2049
+    from_port = 2049
+    referenced_security_group_id = aws_security_group.mlflow-ec2.id
+    security_group_id = aws_security_group.efs-sg.id
+}
+
+resource "aws_vpc_security_group_egress_rule" "efs-egress" {
+    ip_protocol = -1
+    cidr_ipv4 = "0.0.0.0/0"
+    security_group_id = aws_security_group.efs-sg.id
+}
+
+resource "aws_efs_file_system" "efs" {
+    creation_token = "mlflow-storage"
+    encrypted = true
+}
+
+resource "aws_efs_mount_target" "efs-mount" {
+    subnet_id = local.subnet_ids[0]
+    file_system_id = aws_efs_file_system.efs.id
+    security_groups = [aws_security_group.efs-sg.id]
+}
+
+# EC2 Section
+
+data "aws_ami" "alinux" {
+    most_recent = true
+    owners = ["amazon"]
+    filter {
+        name = "name"
+        values = ["al2023-ami-2023*-kernel-*-arm64"]
+    }
+}
+
+resource "aws_security_group" "mlflow-ec2" {
+    name = "mlflow-ec2-sg"
+    vpc_id = var.vpc_id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ec2-ssh" {
+    security_group_id = aws_security_group.mlflow-ec2.id
+    ip_protocol = "tcp"
+    cidr_ipv4 = var.my_ip
+    from_port = 22
+    to_port = 22
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ec2-mlflow" {
+    security_group_id = aws_security_group.mlflow-ec2.id
+    for_each = toset(local.blocks)
+    ip_protocol = "tcp"
+    referenced_security_group_id = each.value
+    from_port = 5000
+    to_port = 5000
+}
+
+resource "aws_vpc_security_group_egress_rule" "ec2-egress" {
+    ip_protocol = -1
+    cidr_ipv4 = "0.0.0.0/0"
+    security_group_id = aws_security_group.mlflow-ec2.id
+}
+
+resource "aws_iam_role" "mlflow-ec2-role" {
+    name = "mlflow-ec2-role"
+    assume_role_policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [{
+            Effect = "Allow"
+            Action = "sts:AssumeRole"
+            Principal = {Service = "ec2.amazonaws.com"}
+        }]
+    })
+}
+
+resource "aws_s3_bucket" "mlflow-s3" {
+    bucket = "sogo-mlflow-artifacts"
+}
+
+resource "aws_iam_role_policy" "ec2-s3" {
+    name = "ec2-s3"
+    role = aws_iam_role.mlflow-ec2-role.id
+    policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [{
+            Effect = "Allow"
+            Action = ["s3:PutObject", "s3:GetObject", "s3:ListBucket"]
+            Resource = ["${aws_s3_bucket.mlflow-s3.arn}/*", "${aws_s3_bucket.mlflow-s3.arn}"]
+        }]
+    })
+}
+
+resource "aws_iam_instance_profile" "mlflow-ec2-profile" {
+    name = "mlflow-ec2-profile"
+    role = aws_iam_role.mlflow-ec2-role.name
+}
+
+resource "aws_instance" "mlflow-ec2" {
+    ami = data.aws_ami.alinux.id
+    instance_type = var.instance_type
+    key_name = "ec2-key"
+    iam_instance_profile = aws_iam_instance_profile.mlflow-ec2-profile.name
+    vpc_security_group_ids = [aws_security_group.mlflow-ec2.id]
+    subnet_id = local.subnet_ids[0]
+
+    user_data = templatefile("${path.module}/userdata.tftpl", {
+        efs_id = aws_efs_file_system.efs.id,
+        bucket = aws_s3_bucket.mlflow-s3.bucket})
+}
+
+resource "aws_route53_zone" "private_zone" {
+    name = "mlflow.local"
+    vpc {
+        vpc_id = var.vpc_id
+    }
+}
+
+resource "aws_route53_record" "ec2" {
+    type = "A"
+    name = "tracking.${aws_route53_zone.private_zone.name}"
+    zone_id = aws_route53_zone.private_zone.id
+    ttl = 60
+    records = [aws_instance.mlflow-ec2.private_ip]
+}
+
+# CloudFront and Lambda Function Section
 
 data "aws_acm_certificate" "cf_cert" {
     provider = aws.us-east-1
@@ -242,6 +378,28 @@ resource "aws_lambda_function" "fastapi_lambda" {
     ]   
 }
 
+
+resource "aws_cloudwatch_event_rule" "ping" {
+    name = "PingLambda"
+    schedule_expression = "rate(1 minute)"
+}
+
+resource "aws_cloudwatch_event_target" "lambda" {
+    rule = aws_cloudwatch_event_rule.ping.name
+    arn = aws_lambda_function.fastapi_lambda.arn
+}
+
+resource "aws_lambda_permission" "cloudwatch_invoke" {
+    statement_id = "EvenLambdaInvoke"
+    principal = "events.amazonaws.com"
+    function_name = aws_lambda_function.fastapi_lambda.function_name
+    action = "lambda:InvokeFunction"
+    source_arn = aws_cloudwatch_event_rule.ping.arn
+}
+
+
+# API Gateway Section
+
 resource "aws_api_gateway_rest_api" "rest_api" {
     name = "my_rest_api"
 
@@ -250,6 +408,7 @@ resource "aws_api_gateway_rest_api" "rest_api" {
         ip_address_type = "ipv4"
     }
 }
+
 
 resource "aws_api_gateway_domain_name" "domain" {
     domain_name = var.domain_name
@@ -360,20 +519,3 @@ resource "aws_lambda_permission" "api_permission" {
     source_arn = "${aws_api_gateway_rest_api.rest_api.execution_arn}/*"
 }
 
-resource "aws_cloudwatch_event_rule" "ping" {
-    name = "PingLambda"
-    schedule_expression = "rate(1 minute)"
-}
-
-resource "aws_cloudwatch_event_target" "lambda" {
-    rule = aws_cloudwatch_event_rule.ping.name
-    arn = aws_lambda_function.fastapi_lambda.arn
-}
-
-resource "aws_lambda_permission" "cloudwatch_invoke" {
-    statement_id = "EvenLambdaInvoke"
-    principal = "events.amazonaws.com"
-    function_name = aws_lambda_function.fastapi_lambda.function_name
-    action = "lambda:InvokeFunction"
-    source_arn = aws_cloudwatch_event_rule.ping.arn
-}

@@ -24,3 +24,10 @@ variable "domain_name" {type = string}
 variable "cf_domain" {type = string}
 
 variable "repo_uri" {type = string}
+
+variable "my_ip" {type = string}
+
+variable "instance_type" {
+    type = string
+    default = "t4g.medium"
+}

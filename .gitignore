@@ -5,4 +5,4 @@ notebooks/
 mlruns
 mlflow.db
 node_modules
-terraform.tfvars
+mlartifacts
