@@ -132,8 +132,8 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, embedding_model, n_trials)
         model_info = mlflow.xgboost.log_model(best_model, name="Best_Model", registered_model_name="XGBoost Model")
         if study.best_value > current_f1:
             client.set_registered_model_alias(name="XGBoost Model", alias="production", version=model_info.registered_model_version)
-        mlflow.log_artifact("scaler.pkl", artifact_path="Best_Model")
-        mlflow.log_artifact("dict_vect.pkl", artifact_path="Best_Model")
+        mlflow.log_artifact("scaler.pkl")
+        mlflow.log_artifact("dict_vect.pkl")
         mlflow.sentence_transformers.log_model(embedding_model, name="Transformer", registered_model_name="Transformer")
 
 def main():
