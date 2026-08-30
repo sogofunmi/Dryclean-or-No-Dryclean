@@ -118,7 +118,7 @@ resource "aws_iam_role_policy" "ec2-s3" {
         Statement = [{
             Effect = "Allow"
             Action = ["s3:PutObject", "s3:GetObject", "s3:ListBucket"]
-            Resource = ["${aws_s3_bucket.mlflow-s3.arn}/*", "${aws_s3_bucket.mlflow-s3.arn}"]
+            Resource = ["${aws_s3_bucket.mlflow-s3.arn}/*", aws_s3_bucket.mlflow-s3.arn]
         }]
     })
 }
