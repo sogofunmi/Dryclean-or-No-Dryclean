@@ -15,10 +15,10 @@ model_uri = f"models:/{model_name}@{alias}"
 prod_version = client.get_model_version_by_alias(name=model_name, alias=alias)
 run_id = prod_version.run_id
 
-scaler_path = mlflow.artifacts.download_artifacts(run_id=run_id, artifact_path="Best_Model/scaler.pkl", dst_path="/tmp")
+scaler_path = mlflow.artifacts.download_artifacts(run_id=run_id, artifact_path="scaler.pkl", dst_path="/tmp")
 scaler = joblib.load(scaler_path)
 
-dict_vect_path = mlflow.artifacts.download_artifacts(run_id=run_id, artifact_path="Best_Model/dict_vect.pkl", dst_path="/tmp")
+dict_vect_path = mlflow.artifacts.download_artifacts(run_id=run_id, artifact_path="dict_vect.pkl", dst_path="/tmp")
 dict_vect = joblib.load(dict_vect_path)
 
 model = mlflow.xgboost.load_model(f"models:/{model_name}@{alias}")
