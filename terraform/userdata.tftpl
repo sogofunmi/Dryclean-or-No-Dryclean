@@ -23,14 +23,16 @@ cat << EOF > /etc/systemd/system/mlflow.service
 
 [Unit]
 Description=MLflow Tracking Server
-After=network.target remote-fs.target
+Wants=network-online.target
+After=network-online.target remote-fs.target
 StartLimitIntervalSec=0
 
 [Service]
 Type=simple
 User=root
 ExecStart=/mlflow/venv/bin/mlflow server --backend-store-uri sqlite:////mnt/mlflow/mlflow.db \
-    --artifacts-destination s3://${bucket}/ --serve-artifacts --host 0.0.0.0 --port 5000
+--artifacts-destination s3://${bucket}/ --serve-artifacts --host 0.0.0.0 --port 5000
+RequiresMountsFor=mnt/mlflow
 Restart=always
 RestartSec=5
 

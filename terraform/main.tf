@@ -139,6 +139,7 @@ resource "aws_instance" "mlflow-ec2" {
     user_data = templatefile("${path.module}/userdata.tftpl", {
         efs_id = aws_efs_file_system.efs.id,
         bucket = aws_s3_bucket.mlflow-s3.bucket})
+    user_data_replace_on_change = true
 }
 
 resource "aws_route53_zone" "private_zone" {
