@@ -140,6 +140,9 @@ resource "aws_instance" "mlflow-ec2" {
         efs_id = aws_efs_file_system.efs.id,
         bucket = aws_s3_bucket.mlflow-s3.bucket})
     user_data_replace_on_change = true
+    lifecycle {
+        create_before_destroy = true
+    }
 }
 
 resource "aws_route53_zone" "private_zone" {
@@ -255,18 +258,7 @@ resource "aws_cloudfront_distribution" "website" {
 
         target_origin_id = "s3-website"
         viewer_protocol_policy = "redirect-to-https"
-    }
-
-    ordered_cache_behavior {
-        path_pattern = "*.svg"
-        allowed_methods = ["GET", "HEAD"]
-        cached_methods = ["GET", "HEAD"]
-
-        cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
-
-        target_origin_id = "s3-website"
-        viewer_protocol_policy = "redirect-to-https"
-    }    
+    }   
 
     viewer_certificate {
         acm_certificate_arn = data.aws_acm_certificate.cf_cert.arn
