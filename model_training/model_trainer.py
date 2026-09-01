@@ -24,9 +24,13 @@ client = mlflow.MlflowClient()
 def data_split(bucket_name=historical_bucket):
 
     df = pd.read_csv(f"s3://{bucket_name}/historical_data.csv")
+
+    price_prune = df.loc[((df["price"] < 200.0) & (df["y"]==0)) | ((df["price"] > 3000.0) & (df["y"]==0))]
+    df.drop(price_prune.index, inplace=True)
+    df.reset_index(inplace=True, drop=True)
     
     X_train_unscaled, X_test_unscaled, y_train, y_test = train_test_split(df.drop(["link", "y"], axis=1), 
-                                                                              df["y"], test_size=0.3, random_state=40)
+                                                                              df["y"], test_size=0.3, random_state=40, stratify=df["y"])
     dict_vect = DictVectorizer(sparse=False)
     train_dicts = X_train_unscaled.drop(["title", "price"], axis=1).to_dict(orient="records")
     dict_vect.fit(train_dicts)                                                                  
