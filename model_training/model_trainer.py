@@ -96,7 +96,7 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, embedding_model, n_trials)
                 }
 
         with mlflow.start_run(nested=True):
-            base_model = xgb.XGBClassifier(**params, eval_metric="aucpr", scale_pos_weight=8)
+            base_model = xgb.XGBClassifier(**params, eval_metric="aucpr", scale_pos_weight=6)
             base_model.fit(X_train, y_train)
 
             y_pred = base_model.predict(X_test)
@@ -123,7 +123,7 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, embedding_model, n_trials)
         mlflow.log_params({f"best_{k}": v for k, v in study.best_params.items()})
         mlflow.log_metric("Best F1 Score", study.best_value)
 
-        best_model = xgb.XGBClassifier(**best_params, eval_metric="aucpr", scale_pos_weight=8)
+        best_model = xgb.XGBClassifier(**best_params, eval_metric="aucpr", scale_pos_weight=6)
         best_model.fit(X_train, y_train)
         y_pred_best = best_model.predict(X_test)
 
