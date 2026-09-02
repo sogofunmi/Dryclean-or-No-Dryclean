@@ -81,15 +81,11 @@ def care_labels(data, wash_labels=wash_labels):
 
 def price_transform(data):
     
-    data["price"] = data['price'].str.replace(r"[$,]", "", regex=True)
-    data["price"] = data["price"].astype("float")
+    data["price"] = data["price"].str.replace(r"[$,]", "", regex=True).astype("float")
     
     return data["price"]
 
 def fabric_extractor(string, fiber_abbreviations=fiber_abb, fabric_substitutions=fabric_subs):
-
-    """Mohair, Cashmere, Camelhair, Beaver, Angora, Merino, Vicuna, Llama, Yak, Guanaco, Lambswool, Sheepswool, 
-    and Alpaca have been grouped under wool"""
     
     fabric_dict = {}
     matches = re.findall(r"(\d+(?:\.\d+)?)%\s*([\w\s-]+?)(?=\d+%|$)", string)
@@ -135,7 +131,7 @@ def composition_transform(data):
 
     data.index = range(1, len(data) + 1)
     
-    data["composition"] = data["composition"].str.replace(r'[^a-zA-Z(\d+(?:\.\d+)?)%\s]', "", regex=True)
+    data["composition"] = data["composition"].str.replace(r"[^a-zA-Z(\d+(?:\.\d+)?)%\s]", "", regex=True)
 
     new_comp = data["composition"].apply(fabric_extractor).tolist()
     features = dict_vec.fit_transform(new_comp)
