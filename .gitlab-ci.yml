@@ -77,6 +77,19 @@ build-scraper:
       --cache-to=type=registry,ref=$ECR_URI/fashion/scraper:cache,mode=max 
       -t $ECR_URI/fashion/scraper:latest -f ./fashion_crawler/Dockerfile ./fashion_crawler
 
+build-farfetch-scraper:
+  extends: .docker_setup
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - farfetch_crawler/**/*
+  script:
+    - > 
+      docker buildx build --push --cache-from=type=registry,ref=$ECR_URI/fashion/farfetch:cache
+      --cache-to=type=registry,ref=$ECR_URI/fashion/farfetch:cache,mode=max 
+      -t $ECR_URI/fashion/farfetch:latest -f ./farfetch_crawler/Dockerfile ./farfetch_crawler
+
 build-etl:
   extends: .docker_setup
   stage: build

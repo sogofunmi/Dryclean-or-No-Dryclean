@@ -1,0 +1,7 @@
+Scrapy==2.14.2
+scrapy-playwright==0.0.48
+urllib3
+itemadapter
+requests
+boto3
+botocore[crt]
