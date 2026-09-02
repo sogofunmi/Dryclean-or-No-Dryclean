@@ -10,12 +10,12 @@ from sklearn.feature_extraction import DictVectorizer
 raw_bucket = os.environ.get("AWS_RAW_DATA")
 historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA")
 
-wash_labels = set(["hand wash", "machine", "dry clean", "cold washing", "delicate cycle", "gentle cycle", 
+WASH_LABELS = set(["hand wash", "machine", "dry clean", "cold washing", "delicate cycle", "gentle cycle", 
                "wash cold", "wash hot", "gentle wash", "wash warm", "washable", "specialist clean", "specialist care", "wash at", "spot clean", 
                "professional clean", "delicate wash", "cold wash", "professional textile care", 
                "professional leather cleaning", "specialized care", "leather specialist", "specialist leather"])
 
-fiber_abb = {"ac": "acetate", "ca":"acetate", "cmd": "modal", "co": "cotton", "cta": "acetate",
+FIBER_ABBR = {"ac": "acetate", "ca":"acetate", "cmd": "modal", "co": "cotton", "cta": "acetate",
             "cu": "cotton", "cup": "cotton", "cv": "viscose", "ea": "elastane", "el": "elastane",
             "hl": "linen", "li": "linen", "ma": "acrylic", "mo": "modal", "ny": "polyamide",
             "pe": "polyester", "pes": "polyester", "pet": "polyester", "pm": "polyester", "pu": "polyester",
@@ -24,7 +24,7 @@ fiber_abb = {"ac": "acetate", "ca":"acetate", "cmd": "modal", "co": "cotton", "c
             "wu": "wool", "wb": "wool","pl":"polyester"
             }
 
-fabric_subs = {"viscose":"viscose", "rayon":"viscose", "spandex":"elastane", "elastane":"elastane", "elastan":"elastane", "tane":"elastane", "alastane":"elastane", "polytrimethylane":"polyester",
+FABRIC_SUBS = {"viscose":"viscose", "rayon":"viscose", "spandex":"elastane", "elastane":"elastane", "elastan":"elastane", "tane":"elastane", "alastane":"elastane", "polytrimethylane":"polyester",
                "elasane":"elastane", "elastae":"elastane","elaste":"elastane", "flax":"linen", "linen": "linen", "nylon":"polyamide", "amid":"polyamide", "polia":"polyamide", "terell":"polyester", "elasto":"polyester", 
                "cotton": "cotton", "acetate":"acetate", "modal":"modal", "cupro":"cotton", "modacrylic":"acrylic", "acry": "acrylic","silk":"silk",
                "poly":"polyester", "lurex":"polyester", "wool":"wool", "mohair":"wool", "cashmere":"wool", "merino":"wool", "alpaca":"wool", "seta":"silk", "sisal":"linen",
@@ -59,10 +59,10 @@ def extract_from_s3(bucket_name=raw_bucket):
     else:
         print("No file found in bucket")
     
-def care_labels(data, wash_labels=wash_labels):
+def care_labels(data):
 
     data["y"] = [", ".join([word.lower() for word in row 
-                for substring in wash_labels 
+                for substring in WASH_LABELS 
                 if substring in word.lower()]) 
                 for row in data["details"]]
 
@@ -72,8 +72,7 @@ def care_labels(data, wash_labels=wash_labels):
 
     condition = data["y"].str.contains(
         "machine|cycle|washable at|cold washing|delicate cycle|"
-        "wash at|cold wash|gentle wash|gentle cycle|washable|delicate wash|"
-        , case=False)
+        "wash at|cold wash|gentle wash|gentle cycle|washable|delicate wash|", case=False)
 
     data["y"] = np.where(condition, "1", "0")
 
@@ -85,7 +84,7 @@ def price_transform(data):
     
     return data["price"]
 
-def fabric_extractor(string, fiber_abbreviations=fiber_abb, fabric_substitutions=fabric_subs):
+def fabric_extractor(string):
     
     fabric_dict = {}
     matches = re.findall(r"(\d+(?:\.\d+)?)%\s*([\w\s-]+?)(?=\d+%|$)", string)
@@ -96,17 +95,14 @@ def fabric_extractor(string, fiber_abbreviations=fiber_abb, fabric_substitutions
         fabric = fabric.strip()
 
         fabric_parse = fabric
-        if any(key in fabric_parse for key in fabric_substitutions):
-            for key, val in fabric_substitutions.items():
+        if any(key in fabric_parse for key in FABRIC_SUBS):
+            for key, val in FABRIC_SUBS.items():
                 if key in fabric_parse:
                     fabric_parse = val
                     break
 
-        elif fabric_parse in fiber_abbreviations.keys():
-            fabric_parse = fiber_abbreviations[fabric_parse]
-        
-        elif "trochus niloticus" in fabric_parse:
-            continue
+        elif fabric_parse in FIBER_ABBR.keys():
+            fabric_parse = FIBER_ABBR[fabric_parse]
         else:
             fabric_parse = "other"
         

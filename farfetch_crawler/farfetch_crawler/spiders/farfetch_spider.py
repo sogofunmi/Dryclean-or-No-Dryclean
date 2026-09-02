@@ -1,9 +1,6 @@
 import scrapy
 from urllib.parse import urljoin
 from farfetch_crawler.items import FarfetchCrawlerItem
-from scrapy_playwright.page import PageMethod
-from urllib.parse import urljoin, urlparse
-import os
 import asyncio
 
 class FarfetchSpider(scrapy.Spider):
@@ -14,6 +11,7 @@ class FarfetchSpider(scrapy.Spider):
         "PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT": 50000,
         "CLOSESPIDER_ITEMCOUNT": 20000
     }
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.seen_links = set()
