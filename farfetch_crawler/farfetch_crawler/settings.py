@@ -9,7 +9,7 @@
 
 BOT_NAME = "farfetch_crawler"
 
-import requests 
+import os
 
 SPIDER_MODULES = ["farfetch_crawler.spiders"]
 NEWSPIDER_MODULE = "farfetch_crawler.spiders"
