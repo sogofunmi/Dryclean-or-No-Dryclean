@@ -26,7 +26,7 @@ client = mlflow.MlflowClient()
 def data_split():
 
     df = pd.read_csv(f"s3://{historical_bucket}/historical_data.csv")
-    farfetch_df = pd.read_csv(f"s3://{farfetch_bucket}/farfetch_data.csv")
+    farfetch_df = pd.read_csv(f"s3://{historical_bucket}/farfetch_data.csv")
     
     price_prune = df.loc[((df["price"] < 200.0) & (df["y"]==0)) | ((df["price"] > 4000.0) & (df["y"]==0))]
     df.drop(price_prune.index, inplace=True)
