@@ -9,13 +9,14 @@
 
 BOT_NAME = "farfetch_crawler"
 
-import os
+
 
 SPIDER_MODULES = ["farfetch_crawler.spiders"]
 NEWSPIDER_MODULE = "farfetch_crawler.spiders"
 
 ADDONS = {}
 
+import os
 farfetch_bucket = os.environ.get("AWS_FARFETCH_DATA")
 
 feed_uri = f"s3://{farfetch_bucket}/%(time)s.json"
