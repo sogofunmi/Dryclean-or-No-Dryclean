@@ -13,6 +13,8 @@ from sklearn.feature_extraction import DictVectorizer
 
 
 historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA")
+farfetch_bucket = os.environ.get("AWS_FARFETCH_BUCKET")
+
 model_path = os.environ.get("MODEL_PATH", "all-MiniLM-L6-v2")
 mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow_server:5000")
 
@@ -21,16 +23,20 @@ mlflow.set_experiment("XGBoost Experiment")
 
 client = mlflow.MlflowClient()
 
-def data_split(bucket_name=historical_bucket):
+def data_split():
 
-    df = pd.read_csv(f"s3://{bucket_name}/historical_data.csv")
-
-    price_prune = df.loc[((df["price"] < 200.0) & (df["y"]==0)) | ((df["price"] > 3000.0) & (df["y"]==0))]
-    df.drop(price_prune.index, inplace=True)
-    df.reset_index(inplace=True, drop=True)
+    df = pd.read_csv(f"s3://{historical_bucket}/historical_data.csv")
+    farfetch_df = pd.read_csv(f"s3://{farfetch_bucket}/farfetch_data.csv")
     
-    X_train_unscaled, X_test_unscaled, y_train, y_test = train_test_split(df.drop(["link", "y"], axis=1), 
-                                                                              df["y"], test_size=0.3, random_state=40, stratify=df["y"])
+    price_prune = df.loc[((df["price"] < 200.0) & (df["y"]==0)) | ((df["price"] > 4000.0) & (df["y"]==0))]
+    df.drop(price_prune.index, inplace=True)
+    
+    new = pd.concat([df, farfetch_df], ignore_index=True)
+    new.drop_duplicates(subset=['title', 'price'], inplace=True)
+    
+    X_train_unscaled, X_test_unscaled, y_train, y_test = train_test_split(new.drop(["link", "y"], axis=1), 
+                                                                              new["y"], test_size=0.2, random_state=40, stratify=new["y"])                                                               
+
     dict_vect = DictVectorizer(sparse=False)
     train_dicts = X_train_unscaled.drop(["title", "price"], axis=1).to_dict(orient="records")
     dict_vect.fit(train_dicts)                                                                  
@@ -86,6 +92,7 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, embedding_model, n_trials)
     joblib.dump(scaler, "scaler.pkl")
     joblib.dump(dv, "dict_vect.pkl")
     
+    pos_weight = round((y_train == 0).sum() / (y_train==1).sum(), 1)
     mlflow.xgboost.autolog(log_models=False)
     def objective(trial):
         
@@ -96,7 +103,7 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, embedding_model, n_trials)
                 }
 
         with mlflow.start_run(nested=True):
-            base_model = xgb.XGBClassifier(**params, eval_metric="aucpr", scale_pos_weight=6, random_state=40)
+            base_model = xgb.XGBClassifier(**params, eval_metric="aucpr", scale_pos_weight=pos_weight, random_state=40)
             base_model.fit(X_train, y_train)
 
             y_pred = base_model.predict(X_test)
@@ -123,7 +130,7 @@ def XGB(X_train, y_train, X_test, y_test, scaler, dv, embedding_model, n_trials)
         mlflow.log_params({f"best_{k}": v for k, v in study.best_params.items()})
         mlflow.log_metric("Best F1 Score", study.best_value)
 
-        best_model = xgb.XGBClassifier(**best_params, eval_metric="aucpr", scale_pos_weight=6, random_state=40)
+        best_model = xgb.XGBClassifier(**best_params, eval_metric="aucpr", scale_pos_weight=pos_weight, random_state=40)
         best_model.fit(X_train, y_train)
         y_pred_best = best_model.predict(X_test)
 
