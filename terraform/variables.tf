@@ -11,8 +11,6 @@ variable "subnet_2_id" {type = string}
 
 variable "subnet_3_id" {type = string}
 
-variable "route_table_id" {type = string}
-
 variable "security_group_id" {type = string}
 
 variable "domain_bucket" {type = string}
@@ -20,8 +18,6 @@ variable "domain_bucket" {type = string}
 variable "mlflow_uri" {type = string}
 
 variable "domain_name" {type = string}
-
-variable "cf_domain" {type = string}
 
 variable "repo_uri" {type = string}
 
