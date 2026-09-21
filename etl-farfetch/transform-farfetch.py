@@ -32,6 +32,7 @@ FABRIC_SUBS = {"viscose":"viscose", "rayon":"viscose", "spandex":"elastane", "el
                "wax":"cotton","chaguar":"linen","taffeta":"polyester","econyl":"polyester","poli":"polyester", "elastan":"elastane", "arcy":"acrylic"
                }
 
+
 def extract_from_s3():
     s3 = boto3.client("s3")
     
