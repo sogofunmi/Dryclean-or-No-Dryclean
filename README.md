@@ -14,7 +14,7 @@ This repository lies at the intersection of Data Engineering, Machine Learning, 
 4. **Model Serving API:** FastAPI, Lambda, and API Gateway (REST API) work well together for the backend. Lambda + API Gateway are cost effective when running a low traffic site because of their serverless offering. API Gateway provides rate limiting, throttling, and other protections for the backend.
 5. **Frontend:** S3 + CloudFront were used for the frontend. S3 is great for hosting static websites and CloudFront provides some protecton with Web ACL. Rate limiting rules were set to block IP addresses with too many requests. 
 6. **Infrastructure Provisioning:** Terraform was used for provisioning infrastructure specifically for the CloudFront distribution and Lambda + API Gateway infrastructure (backend). 
-6. **Full Model Deployment**: Model was deployed to AWS using GitLab CI. Continuous retraining and deployment are automated using AWS Services like lambda functions and EventBridge rules.
+6. **Full Model Deployment**: Model was deployed to AWS using GitLab CI. Continuous retraining and deployment are automated using EventBridge rules.
 
 ## Project Structure
 

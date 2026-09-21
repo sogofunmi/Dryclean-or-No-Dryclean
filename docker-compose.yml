@@ -31,10 +31,35 @@ services:
     networks:
       - app_network
 
+  farfetch_scraper:
+    build: 
+      context: ./farfetch_crawler/
+    container_name: 
+      farfetch
+    ports:
+      - "6800:6800"
+    volumes:
+      - ~/.aws:/root/.aws
+    env_file:
+      - .env
+    networks:
+      - app_network
+
   etl_pipeline:
     build:
       context: ./etl
     container_name: etl_pipeline
+    volumes:
+      - ~/.aws:/root/.aws
+    env_file:
+      - .env
+    networks:
+      - app_network
+    
+  farfetch_etl:
+    build:
+      context: ./etl-farfetch
+    container_name: farfetch_etl
     volumes:
       - ~/.aws:/root/.aws
     env_file:

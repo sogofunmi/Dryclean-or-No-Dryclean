@@ -374,7 +374,7 @@ resource "aws_lambda_function" "fastapi_lambda" {
 
 resource "aws_cloudwatch_event_rule" "ping" {
     name = "PingLambda"
-    schedule_expression = "rate(3 minutes)"
+    schedule_expression = "rate(4 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "lambda" {

@@ -2,18 +2,13 @@ import boto3
 import os
 import pandas as pd
 import json
-import numpy as np
 import re
 from sklearn.feature_extraction import DictVectorizer
 
+farfetch_bucket = os.environ.get("AWS_FARFETCH_DATA", "farfetch-bucket")
+historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA", "sogo-transformed-bucket")
 
-raw_bucket = os.environ.get("AWS_RAW_DATA")
-historical_bucket = os.environ.get("AWS_TRANSFORMED_DATA")
-
-WASH_LABELS = set(["hand wash", "machine", "dry clean", "cold washing", "delicate cycle", "gentle cycle", 
-               "wash cold", "wash hot", "gentle wash", "wash warm", "washable", "specialist clean", "specialist care", "wash at", "spot clean", 
-               "professional clean", "delicate wash", "cold wash", "professional textile care", 
-               "professional leather cleaning", "specialized care", "leather specialist", "specialist leather"])
+s3 = boto3.client("s3")
 
 FIBER_ABBR = {"ac": "acetate", "ca":"acetate", "cmd": "modal", "co": "cotton", "cta": "acetate",
             "cu": "cotton", "cup": "cotton", "cv": "viscose", "ea": "elastane", "el": "elastane",
@@ -37,17 +32,16 @@ FABRIC_SUBS = {"viscose":"viscose", "rayon":"viscose", "spandex":"elastane", "el
                "wax":"cotton","chaguar":"linen","taffeta":"polyester","econyl":"polyester","poli":"polyester", "elastan":"elastane", "arcy":"acrylic"
                }
 
-
-def extract_from_s3(bucket_name=raw_bucket):
+def extract_from_s3():
     s3 = boto3.client("s3")
     
-    response = s3.list_objects_v2(Bucket=bucket_name)
+    response = s3.list_objects_v2(Bucket=farfetch_bucket)
     files = response.get("Contents", [])
 
     if files:
         recent_file = sorted(files, key=lambda x: x["LastModified"])[-1]
         file_key = recent_file["Key"]
-        file = s3.get_object(Bucket=bucket_name, Key=file_key)
+        file = s3.get_object(Bucket=farfetch_bucket, Key=file_key)
 
         raw_file = file["Body"]
         read_file = json.load(raw_file)
@@ -58,79 +52,43 @@ def extract_from_s3(bucket_name=raw_bucket):
         return data
     else:
         print("No file found in bucket")
-    
-def care_labels(data):
-
-    data["y"] = [", ".join([word.lower() for word in row 
-                for substring in WASH_LABELS 
-                if substring in word.lower()]) 
-                for row in data["details"]]
-
-    data.where(data["y"]!="",inplace=True)
-
-    data.dropna(inplace=True)
-
-    condition = data["y"].str.contains(
-        "machine|cycle|washable at|cold washing|delicate cycle|"
-        "wash at|cold wash|gentle wash|gentle cycle|washable|delicate wash|", case=False)
-
-    data["y"] = np.where(condition, "1", "0")
-
-    return data["y"]
-
-def price_transform(data):
-    
-    data["price"] = data["price"].str.replace(r"[$,]", "", regex=True).astype("float")
-    
-    return data["price"]
 
 def fabric_extractor(string):
     
     fabric_dict = {}
-    matches = re.findall(r"(\d+(?:\.\d+)?)%\s*([\w\s-]+?)(?=\d+%|$)", string)
-
     total_pct = 0
-    for pct, fabric in matches:
-        pct = float(pct)
+
+    matches = re.findall(r"([a-zA-Z\s]+)\s*(\d+(?:\.\d+)?)%", string)
+
+    for fabric, pct in matches:
         fabric = fabric.strip()
+        pct = float(pct)
 
-        fabric_parse = fabric
-        if any(key in fabric_parse for key in FABRIC_SUBS):
-            for key, val in FABRIC_SUBS.items():
-                if key in fabric_parse:
-                    fabric_parse = val
+        if any (key in fabric for key in FABRIC_SUBS):
+            for key, value in FABRIC_SUBS.items():
+                if key in fabric:
+                    fabric = value
                     break
-
-        elif fabric_parse in FIBER_ABBR.keys():
-            fabric_parse = FIBER_ABBR[fabric_parse]
+        elif fabric in FIBER_ABBR.keys():
+            fabric = FIBER_ABBR[fabric]
         else:
-            fabric_parse = "other"
+            fabric = "other"
         
-        fabric_dict[fabric_parse] = fabric_dict.get(fabric_parse, 0) + pct
+        fabric_dict[fabric] = fabric_dict.get(fabric, 0) + pct
         total_pct += pct
-
-
     if total_pct > 100:
         for fabric in fabric_dict:
-            fabric_dict[fabric] = round((fabric_dict[fabric] / total_pct) * 100)
-
+            fabric_dict[fabric] = round((fabric_dict[fabric] / total_pct)*100)
     return fabric_dict
-    
 
 def composition_transform(data):
-
     dict_vec = DictVectorizer(sparse=False)
 
-    data["composition"] = data["composition"].astype("str")
+    data["composition"] = data["composition"].astype("str").replace(r"[^(\d+(?:\.\d+)?)a-zA-Z%\s]", "", regex=True)
     data = data.map(lambda x: x.lower() if isinstance(x, str) else x)
-    data = data[data["composition"].str.contains("%", na=False, regex=False)]
 
-    data.index = range(1, len(data) + 1)
-    
-    data["composition"] = data["composition"].str.replace(r"[^a-zA-Z(\d+(?:\.\d+)?)%\s]", "", regex=True)
-
-    new_comp = data["composition"].apply(fabric_extractor).tolist()
-    features = dict_vec.fit_transform(new_comp)
+    composition = data["composition"].apply(fabric_extractor).tolist()
+    features = dict_vec.fit_transform(composition)
     fab_cols = dict_vec.get_feature_names_out()
 
     fab_df = pd.DataFrame(features, columns=fab_cols)
@@ -142,54 +100,53 @@ def composition_transform(data):
     less_100 = new_df.loc[new_df["total"]<100.0]
 
     new_df.drop(less_100.index, inplace=True)
-    new_df.drop(columns=["details", "composition", "total"],inplace=True)
+    new_df.drop(columns=["composition", "total"],inplace=True)
+
+    new_df.index = range(1, len(new_df) + 1)
 
     return new_df
 
-def transform_data(data):
+def transform(data):
     links = data["link"].tolist()
-    
+
+    data.drop_duplicates(subset="title", inplace=True)
     data.dropna(inplace=True)
 
-    data["price"] = price_transform(data)
-    
-    data["y"] = care_labels(data)
+    data["price"] = data["price"].replace(r"[$,]", "", regex=True).astype("float")
+    data["care"] = 1
+    data.rename(columns={"care": "y"}, inplace=True)
 
     data = composition_transform(data)
-    
+
     return links, data
 
-def load_to_s3(links, df, bucket_name=historical_bucket):
-    s3 = boto3.client("s3")
-
+def load_to_s3(links, data):
     try:
-        historical_links = s3.get_object(Bucket=bucket_name, Key="historical_links.json")
-        print("File found.")
-        hist_links = historical_links["Body"]
-        read_links = json.load(hist_links)
+        farfetch_links = s3.get_object(Bucket=historical_bucket, key="farfetch_links.json")
+        loaded_links = farfetch_links["Body"]
+
+        read_links = json.load(loaded_links)
         read_links.extend(links)
 
-        s3.put_object(Bucket=bucket_name, Body=json.dumps(read_links), Key="historical_links.json")
+        s3.put_object(Bucket=historical_bucket, Body=json.dumps(read_links), key="farfetch_links.json")
     except:
-         
         print("No file found.")
-        s3.put_object(Bucket=bucket_name, Body=json.dumps(links), Key="historical_links.json")
+        s3.put_object(Bucket=historical_bucket, Body=json.dumps(links), Key="farfetch_links.json")
 
     try:
-        historical_data = pd.read_csv(f's3://{bucket_name}/historical_data.csv')
+        farfetch_data = pd.read_csv(f"s3://{historical_bucket}/farfetch_data.csv")
         print("File found.")
-        historical_data.index = range(1, len(historical_data)+1)
-        new_df = pd.concat([historical_data.reset_index(drop=True), df.reset_index(drop=True)], axis=0)
+        
+        new_df = pd.concat([farfetch_data.reset_index(drop=True), data.reset_index(drop=True)], axis=0)
 
-        new_df.to_csv(f's3://{bucket_name}/historical_data.csv', index=False)
-
+        new_df.to_csv(f's3://{historical_bucket}/farfetch_data.csv', index=False)
     except:
         print("No file found.")
-        df.to_csv(f's3://{bucket_name}/historical_data.csv', index=False)
+        data.to_csv(f's3://{historical_bucket}/farfetch_data.csv', index=False)
 
 def main():
     extracted_data = extract_from_s3()
-    links, df = transform_data(extracted_data)
+    links, df = transform(extracted_data)
     load_to_s3(links, df)
 
 if __name__=="__main__":

@@ -11,4 +11,4 @@ class FarfetchCrawlerItem(scrapy.Item):
     link = scrapy.Field()
     price = scrapy.Field()
     composition = scrapy.Field()
-    care = scrapy.Field()
+    y = scrapy.Field()

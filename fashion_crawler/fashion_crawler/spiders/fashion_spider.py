@@ -19,7 +19,7 @@ class FashionSpider(scrapy.Spider):
         "PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT": 30000,
     }
 
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         bucket_name = os.environ.get("AWS_TRANSFORMED_BUCKET")
@@ -115,9 +115,9 @@ class FashionSpider(scrapy.Spider):
         item = response.meta["item"]
 
         price = response.css("div.ProductDetails span.PDPProductPrice__current-price::text").get()
-        #details = response.css("div.ProductDetails div.Expandable__contents div ul li p::text").getall()
+        
         details = response.css("div.ProductDetails div.Expandable__contents div ul li::text").getall()
-        #composition = response.xpath('//li/p[contains(text(), "Composition")]/text()').getall()
+
         composition = response.xpath('//li[contains(text(), "Composition")]/text()').getall()
             
 
@@ -132,6 +132,5 @@ class FashionSpider(scrapy.Spider):
             await page.close()  
 
         yield item
-
 
 

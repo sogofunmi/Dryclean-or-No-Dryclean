@@ -2,6 +2,9 @@ import scrapy
 from urllib.parse import urljoin
 from farfetch_crawler.items import FarfetchCrawlerItem
 import asyncio
+import os
+import boto3
+import json
 
 class FarfetchSpider(scrapy.Spider):
     name = "farfetch"
@@ -11,11 +14,20 @@ class FarfetchSpider(scrapy.Spider):
         "PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT": 50000,
         "CLOSESPIDER_ITEMCOUNT": 20000
     }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.seen_links = set()
-
+        bucket_name = os.environ.get("AWS_TRANSFORMED_DATA")
+        s3 = boto3.client("s3")
+        try:
+            historical_links = s3.get_object(Bucket=bucket_name, key="farfetch_links.json")
+            print("File found.")
+            hist_links = historical_links["Body"]
+            links = json.load(hist_links)
+            self.seen_links = set(links)
+        except:
+            print("No file found.")
+            self.seen_links = set()
 
     async def start(self):
         url = "https://www.farfetch.com/shopping/women/clothing-1/items.aspx"
@@ -70,8 +82,8 @@ class FarfetchSpider(scrapy.Spider):
             if next_page:
 
                 next_page_url = urljoin(page.url, next_page)
-
-                yield scrapy.Request(
+                self.logger.info("Opening next webpage")
+                yield response.follow(
                     url=next_page_url,
                     callback=self.parse,
                     meta={
@@ -79,6 +91,7 @@ class FarfetchSpider(scrapy.Spider):
                         "playwright_include_page": True
                     },
                 )
+                
 
             else:
                 self.logger.info("All webpages visited")
