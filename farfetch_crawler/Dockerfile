@@ -6,7 +6,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 RUN apt-get update && apt-get install -y wget gnupg \
     && pip install playwright \
-    && playwright install --with-deps chromium
+    && playwright install-deps
 
 RUN playwright install chromium
 
