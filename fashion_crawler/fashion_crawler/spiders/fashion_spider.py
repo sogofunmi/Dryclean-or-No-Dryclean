@@ -22,11 +22,10 @@ class FashionSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        bucket_name = os.environ.get("AWS_TRANSFORMED_BUCKET", "sogo-transformed-bucket")
         
         s3 = boto3.client("s3")
         try:
-            historical_links = s3.get_object(Bucket=bucket_name, Key="historical_links.json")
+            historical_links = s3.get_object(Bucket="sogo-transformed-bucket", Key="historical_links.json")
             print("File found.")
             hist_links = historical_links["Body"]
             raw_links = json.load(hist_links)
