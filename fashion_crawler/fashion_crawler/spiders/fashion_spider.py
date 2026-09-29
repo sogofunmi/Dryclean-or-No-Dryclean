@@ -22,7 +22,7 @@ class FashionSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        bucket_name = os.environ.get("AWS_TRANSFORMED_BUCKET")
+        bucket_name = os.environ.get("AWS_TRANSFORMED_BUCKET", "sogo-transformed-bucket")
         
         s3 = boto3.client("s3")
         try:
